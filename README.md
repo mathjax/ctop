@@ -1,4 +1,4 @@
 ctop
 ====
 
-A JavaScript implementation of David Carlsle's Content-to-PresentationMathML xsl
+A JavaScript implementation of David Carlisle's Content-to-PresentationMathML xsl
