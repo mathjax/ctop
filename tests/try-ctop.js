@@ -36,8 +36,14 @@ function doTransform() {
 	var presentation = formatXml(output.innerHTML);
 	document.querySelector('#presentation-mml').textContent = presentation;
 	MathJax.Hub.Queue(['Typeset',MathJax.Hub,output]);
+	localStorage['content-mml'] = content;
 }
 
 document.querySelector('#transform').onclick = doTransform;
 document.querySelector('#content-mml').onchange = doTransform;
 document.querySelector('#content-mml').onkeyup = doTransform;
+
+if('content-mml' in localStorage) {
+	document.querySelector('#content-mml').value = localStorage['content-mml'];
+	doTransform();
+}
