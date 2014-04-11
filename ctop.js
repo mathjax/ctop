@@ -1081,7 +1081,7 @@ CToP.applyTokens["partialdiff"] = function(parentNode,contentMMLNode,firstArg,ar
 				if(hadFirst){
 					CToP.appendToken(mrow,'mo','+');
 				}   
-				CToP.appendToken(mrow,'mn',d);
+				CToP.appendToken(mrow,'mn',degree);
 			}
 		}
 		msup.appendChild(mrow);
