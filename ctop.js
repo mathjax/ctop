@@ -376,6 +376,7 @@ CToP.tokens['apply'] = CToP.tokens['reln'] = CToP.tokens['bind'] = function(pare
 				bvars.push(childNode);
 			} else if(name=='condition'||
 					name=='degree'||
+					name=='momentabout'||
 					name=='logbase'||
 					name=='lowlimit'||
 					name=='uplimit'||
@@ -710,6 +711,51 @@ CToP.applyTokens = {
 	"limit": CToP.iteration('lim'),
 	"sdev": CToP.fn('\u03c3')
 }
+CToP.applyTokens['moment'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	var degree,momentabout;
+
+	for(var i=0; i<qualifiers.length;i++){
+		if(qualifiers[i].localName=='degree') {
+			degree = qualifiers[i];
+		} else if(qualifiers[i].localName=='momentabout') {
+			momentabout = qualifiers[i];
+		}
+	}
+
+	var mrow = CToP.createElement('mrow');
+	CToP.appendToken(mrow,'mo','\u27e8');
+	var argrow = CToP.createElement('mrow');
+	if(args.length>1) {
+		argrow.appendChild(CToP.mfenced(args,'(',')'));
+	} else {
+		CToP.applyTransform(argrow,args[0],0);
+	}
+	if(degree) {
+		var msup = CToP.createElement('msup');
+		msup.appendChild(argrow);
+		var children = CToP.children(degree);
+		for(var j=0;j<children.length;j++){
+			CToP.applyTransform(msup,children[j],0);
+		}
+		mrow.appendChild(msup);
+	} else {
+		mrow.appendChild(argrow);
+	}
+	CToP.appendToken(mrow,'mo','\u27e9');
+
+	if(momentabout) {
+		var msub = CToP.createElement('msub');
+		msub.appendChild(mrow);
+		var children = CToP.children(momentabout);
+		for(var j=0;j<children.length;j++){
+			CToP.applyTransform(msub,children[j],0);
+		}
+		parentNode.appendChild(msub);
+	} else {
+		parentNode.appendChild(mrow);
+	}
+}
+
 CToP.applyTokens['variance'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var mrow = CToP.createElement('mrow');
 	var msup = CToP.createElement('msup');
