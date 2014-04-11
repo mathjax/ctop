@@ -686,6 +686,12 @@ CToP.applyTokens['not'] = function(parentNode,contentMMLNode,firstArg,args,bvars
 	}
 	parentNode.appendChild(mrow)
 }
+CToP.applyTokens['divide'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	var mfrac = CToP.createElement('mfrac');
+	CToP.applyTransform(mfrac,args[0],0);
+	CToP.applyTransform(mfrac,args[1],0);
+	parentNode.appendChild(mfrac);
+}
 CToP.applyTokens['tendsto'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var type;
 	if(firstArg.localName=='tendsto') {
