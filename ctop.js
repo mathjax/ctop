@@ -312,8 +312,12 @@ CToP.tokens = {
 	"cs": CToP.token('ms'),
 
 	"csymbol": function(parentNode,contentMMLNode,precedence) {
-		if(CToP.symbols[contentMMLNode.textContent]){
-			CToP.appendToken(parentNode,'mi',CToP.symbols[contentMMLNode.textContent]);
+		var cd = contentMMLNode.getAttribute('cd');
+		var name = contentMMLNode.textContent;
+		if(cd && CToP.contentDictionaries[cd][name]) {
+			CToP.appendToken(parentNode,'mi',CToP.contentDictionaries[cd][name]);
+		} else if(CToP.symbols[name]){
+			CToP.appendToken(parentNode,'mi',CToP.symbols[name]);
 		} else {
 			CToP.tokens['ci'](parentNode,contentMMLNode);
 		}
@@ -666,6 +670,16 @@ CToP.tokens["annotation-xml"] = function(parentNode,contentMMLNode,precedence)  
  */
 CToP.symbols = {
 	"gamma": '\u03B3'
+}
+CToP.contentDictionaries = {
+	"setname1": {
+		"C": '\u2102',
+		"N": '\u2115',
+		"P": '\u2119',
+		"Q": '\u211A',
+		"R": '\u211D',
+		"Z": '\u2124'
+	}
 }
 
 /* Functions to transform function/operation application tokens
