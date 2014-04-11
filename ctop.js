@@ -314,7 +314,7 @@ CToP.tokens = {
 	"csymbol": function(parentNode,contentMMLNode,precedence) {
 		var cd = contentMMLNode.getAttribute('cd');
 		var name = contentMMLNode.textContent;
-		if(cd && CToP.contentDictionaries[cd][name]) {
+		if(cd && CToP.contentDictionaries[cd] && CToP.contentDictionaries[cd][name]) {
 			CToP.appendToken(parentNode,'mi',CToP.contentDictionaries[cd][name]);
 		} else if(CToP.symbols[name]){
 			CToP.appendToken(parentNode,'mi',CToP.symbols[name]);
@@ -724,6 +724,13 @@ CToP.applyTokens = {
 	"lambda": CToP.bind('\u03BB','.'),
 	"limit": CToP.iteration('lim'),
 	"sdev": CToP.fn('\u03c3')
+}
+CToP.applyTokens['card'] = CToP.applyTokens['size'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	var mrow = CToP.createElement('mrow');
+	CToP.appendToken(mrow,'mo','|');
+	CToP.applyTransform(mrow,args[0],0);
+	CToP.appendToken(mrow,'mo','|');
+	parentNode.appendChild(mrow);
 }
 CToP.applyTokens['moment'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var degree,momentabout;
