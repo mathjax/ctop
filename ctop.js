@@ -299,6 +299,9 @@ CToP.tokens = {
 			CToP.tokens['ci'](parentNode,contentMMLNode);
 		}
 	},
+	"fn": function(parentNode,contentMMLNode,precedence) {
+		CToP.applyTransform(parentNode,CToP.children(contentMMLNode)[0],precedence);
+	},
 
 	"naturalnumbers": CToP.identifier('\u2115'),
 	"integers": CToP.identifier('\u2124'),
