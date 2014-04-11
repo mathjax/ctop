@@ -125,12 +125,12 @@ var CToP = {
 				CToP.appendToken(mrow,'mo','(');
 			}
 			if(args.length>1){
-				CToP.applyTransform(mrow,args[0],precedence);
+				CToP.applyTransform(mrow,args[0],tokenPrecedence);
 			}
 			CToP.appendToken(mrow,'mo',name);
 			if(args.length>0){
 				var z = args[(args.length==1)?0:1];
-				CToP.applyTransform(mrow,z,precedence);
+				CToP.applyTransform(mrow,z,tokenPrecedence);
 			}	
 			if(needsBrackets) {
 				CToP.appendToken(mrow,'mo',')');
