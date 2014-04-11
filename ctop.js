@@ -754,6 +754,19 @@ CToP.applyTokens = {
 	"max": CToP.minmax('max'),
 	"min": CToP.minmax('min')
 }
+CToP.applyTokens['conjugate'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	var mover = CToP.createElement('mover');
+	CToP.applyTransform(mover,args[0],0);
+	CToP.appendToken(mover,'mo','\u00af');
+	parentNode.appendChild(mover);
+}
+CToP.applyTokens['abs'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	var mrow = CToP.createElement('mrow');
+	CToP.appendToken(mrow,'mo','|');
+	CToP.applyTransform(mrow,args[0],0);
+	CToP.appendToken(mrow,'mo','|');
+	parentNode.appendChild(mrow);
+}
 CToP.applyTokens['and'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	if(bvars.length || qualifiers.length) {
 		CToP.iteration('\u22c0')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,4);
