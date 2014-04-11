@@ -348,7 +348,7 @@ CToP.tokens['apply'] = CToP.tokens['reln'] = CToP.tokens['bind'] = function(pare
 
 	if(firstArg) {
 		var name = firstArg.localName;
-		name = (name=="csymbol") ? firstArg.textContent : name;
+		name = (name=="csymbol") ? firstArg.textContent.toLowerCase() : name;
 		if(CToP.applyTokens[name]) {
 			CToP.applyTokens[name](parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 		} else {
