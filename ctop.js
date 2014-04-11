@@ -744,7 +744,7 @@ CToP.applyTokens['tendsto'] = function(parentNode,contentMMLNode,firstArg,args,b
 		args = args.slice(1);
 	}
 	var name = (type=='above')? '\u2198' :
-		(type=='below') ? '\u2198' : '\u2192' ;
+		(type=='below') ? '\u2197' : '\u2192' ;
 	CToP.bracket(name,2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 }
 CToP.applyTokens['minus'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
