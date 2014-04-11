@@ -108,7 +108,9 @@ var CToP = {
 						CToP.applyTransform(mrow,contentMMLNode.childNodes[j],0);
 					}
 				}
-				parentNode.appendChild(mrow);
+				if(mrow.childNodes.length) {
+					parentNode.appendChild(mrow);
+				}
 			}
 		}
 	},
@@ -752,7 +754,16 @@ CToP.applyTokens = {
 	"limit": CToP.iteration('lim'),
 	"sdev": CToP.fn('\u03c3'),
 	"max": CToP.minmax('max'),
-	"min": CToP.minmax('min')
+	"min": CToP.minmax('min'),
+	"real": CToP.fn('\u211b'),
+	"imaginary": CToP.fn('\u2111')
+}
+CToP.applyTokens['floor'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	var mrow = CToP.createElement('mrow');
+	CToP.appendToken(mrow,'mo','\u230a');
+	CToP.applyTransform(mrow,args[0],0);
+	CToP.appendToken(mrow,'mo','\u230b');
+	parentNode.appendChild(mrow);
 }
 CToP.applyTokens['conjugate'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var mover = CToP.createElement('mover');
