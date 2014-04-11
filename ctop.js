@@ -673,6 +673,19 @@ CToP.applyTokens = {
 	"lambda": CToP.bind('\u03BB','.'),
 
 }
+CToP.applyTokens['not'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	var mrow = CToP.createElement('mrow');
+	CToP.appendToken(mrow,'mo','\u00ac');
+	var needsBrackets = args[0].localName=='apply';
+	if(needsBrackets) {
+		CToP.appendToken(mrow,'mo','(');
+	}
+	CToP.applyTransform(mrow,args[0],precedence);
+	if(needsBrackets) {
+		CToP.appendToken(mrow,'mo',')');
+	}
+	parentNode.appendChild(mrow)
+}
 CToP.applyTokens['tendsto'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var type;
 	if(firstArg.localName=='tendsto') {
