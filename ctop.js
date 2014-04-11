@@ -113,11 +113,11 @@ var CToP = {
 		}
 	},
 
-	/* Enclose an operation in brackets, if necessary
+	/* Transform a binary operation
 	 *
 	 * (function factory)
 	 */
-	bracket: function(name,tokenPrecedence) {
+	binary: function(name,tokenPrecedence) {
 		return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 			var mrow = CToP.createElement('mrow');
 			var needsBrackets = tokenPrecedence<precedence || (tokenPrecedence==precedence && name=="-");
@@ -713,16 +713,16 @@ CToP.contentDictionaries = {
 /* Functions to transform function/operation application tokens
  */
 CToP.applyTokens = {
-	"rem": CToP.bracket('mod',3),
-	"divide": CToP.bracket('/',3),
-	"remainder": CToP.bracket('mod',3),
-	"implies": CToP.bracket('\u21D2',3),
-	"factorof": CToP.bracket('\21D2',3),
-	"in": CToP.bracket('\u2208',3),
-	"notin": CToP.bracket('\u2209',3),
-	"notsubset": CToP.bracket('\u2288',2),
-	"notprsubset": CToP.bracket('\u2284',2),
-	"setdiff": CToP.bracket('\u2216',2),
+	"rem": CToP.binary('mod',3),
+	"divide": CToP.binary('/',3),
+	"remainder": CToP.binary('mod',3),
+	"implies": CToP.binary('\u21D2',3),
+	"factorof": CToP.binary('\21D2',3),
+	"in": CToP.binary('\u2208',3),
+	"notin": CToP.binary('\u2209',3),
+	"notsubset": CToP.binary('\u2288',2),
+	"notprsubset": CToP.binary('\u2284',2),
+	"setdiff": CToP.binary('\u2216',2),
 	"eq": CToP.infix('=',1),
 	"compose": CToP.infix('\u2218',1),
 	"left_compose": CToP.infix('\u2218',1),
@@ -890,13 +890,13 @@ CToP.applyTokens['tendsto'] = function(parentNode,contentMMLNode,firstArg,args,b
 	}
 	var name = (type=='above')? '\u2198' :
 		(type=='below') ? '\u2197' : '\u2192' ;
-	CToP.bracket(name,2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+	CToP.binary(name,2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 }
 CToP.applyTokens['minus'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	if(args.length==1) {
-		CToP.bracket('-',5)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+		CToP.binary('-',5)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 	} else {
-		CToP.bracket('-',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+		CToP.binary('-',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 	}
 }
 CToP.applyTokens['complex-cartesian'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
