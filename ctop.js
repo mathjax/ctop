@@ -680,6 +680,16 @@ CToP.applyTokens['grad'] = function(parentNode,contentMMLNode,firstArg,args,bvar
 	mrow.appendChild(CToP.mfenced(args,'(',')'));
 	parentNode.appendChild(mrow);
 };
+CToP.applyTokens['laplacian'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	var mrow = CToP.createElement('mrow');
+	var msup = CToP.createElement('msup');
+	CToP.appendToken(msup,'mo','\u2207');
+	CToP.appendToken(msup,'mn','2');
+	mrow.appendChild(msup);
+	CToP.appendToken(mrow,'mo','\u2061');
+	mrow.appendChild(CToP.mfenced(args,'(',')'));
+	parentNode.appendChild(mrow);
+};
 CToP.applyTokens['curl'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var mrow = CToP.createElement('mrow');
 	CToP.appendToken(mrow,'mo','\u2207');
