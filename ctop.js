@@ -673,6 +673,13 @@ CToP.applyTokens = {
 	"lambda": CToP.bind('\u03BB','.'),
 
 }
+CToP.applyTokens['curl'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	var mrow = CToP.createElement('mrow');
+	CToP.appendToken(mrow,'mo','\u2207');
+	CToP.appendToken(mrow,'mo','\u00d7');
+	CToP.applyTransform(mrow,args[0],precedence);
+	parentNode.appendChild(mrow);
+};
 CToP.applyTokens['not'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var mrow = CToP.createElement('mrow');
 	CToP.appendToken(mrow,'mo','\u00ac');
