@@ -302,6 +302,34 @@ var CToP = {
 			mrow.appendChild(CToP.mfenced(args,'(',')'));
 			parentNode.appendChild(mrow);
 		}
+	},
+
+	/** Transform a min/max operation
+	 *
+	 * (function factory)
+	 */
+	minmax: function(name) {
+		return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+			var mrow = CToP.createElement('mrow');
+			CToP.appendToken(mrow,'mi',name);
+			var mrow2 = CToP.createElement('mrow');
+			CToP.appendToken(mrow2,'mo','{');
+			for(var i=0;i<args.length;i++) {
+				if(i>0) {
+					CToP.appendToken(mrow2,'mo',',');
+				}
+				CToP.applyTransform(mrow2,args[i],0);
+			}
+			if(qualifiers.length) {
+				CToP.appendToken(mrow2,'mo','|');
+				for(var i=0;i<qualifiers.length;i++) {
+					CToP.applyTransform(mrow2,qualifiers[i],0);
+				}
+			}
+			CToP.appendToken(mrow2,'mo','}');
+			mrow.appendChild(mrow2);
+			parentNode.appendChild(mrow);
+		}
 	}
 }
 
@@ -723,8 +751,11 @@ CToP.applyTokens = {
 	"exists": CToP.bind('\u2203','\u007c'),
 	"lambda": CToP.bind('\u03BB','.'),
 	"limit": CToP.iteration('lim'),
-	"sdev": CToP.fn('\u03c3')
+	"sdev": CToP.fn('\u03c3'),
+	"max": CToP.minmax('max'),
+	"min": CToP.minmax('min')
 }
+
 CToP.applyTokens['card'] = CToP.applyTokens['size'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var mrow = CToP.createElement('mrow');
 	CToP.appendToken(mrow,'mo','|');
