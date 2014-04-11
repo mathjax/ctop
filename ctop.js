@@ -282,8 +282,27 @@ var CToP = {
 			}
 			parentNode.appendChild(mrow);
 		}
-	}
+	},
 
+	/** Transform a function application
+	 *
+	 * i.e. something which ends up looking like `f(x,y,z)`, where `f` is a string
+	 *
+	 * (function factory)
+	 */
+	fn: function(name) {
+		return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+			var mrow = CToP.createElement('mrow');
+			if(firstArg.childNodes.length){
+				CToP.applyTransform(mrow,firstArg,0);
+			} else {
+				CToP.appendToken(mrow,'mi',name);
+			}
+			CToP.appendToken(mrow,'mo','\u2061');
+			mrow.appendChild(CToP.mfenced(args,'(',')'));
+			parentNode.appendChild(mrow);
+		}
+	}
 }
 
 /* Functions to transform variable/atom tokens
@@ -352,15 +371,7 @@ CToP.tokens['apply'] = CToP.tokens['reln'] = CToP.tokens['bind'] = function(pare
 		if(CToP.applyTokens[name]) {
 			CToP.applyTokens[name](parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 		} else {
-			var mrow = CToP.createElement('mrow');
-			if(firstArg.childNodes.length){
-				CToP.applyTransform(mrow,firstArg,0);
-			} else {
-				CToP.appendToken(mrow,'mi',name);
-			}
-			CToP.appendToken(mrow,'mo','\u2061');
-			mrow.appendChild(CToP.mfenced(args,'(',')'));
-			parentNode.appendChild(mrow);
+			CToP.fn(name)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 		}
 	} else {
 		parentNode.appendChild(CToP.createElement('mrow'));
@@ -671,7 +682,18 @@ CToP.applyTokens = {
 	"forall": CToP.bind('\u2200',','),
 	"exists": CToP.bind('\u2203','\u007c'),
 	"lambda": CToP.bind('\u03BB','.'),
-	"limit": CToP.iteration('lim')
+	"limit": CToP.iteration('lim'),
+	"sdev": CToP.fn('\u03c3')
+}
+CToP.applyTokens['variance'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	var mrow = CToP.createElement('mrow');
+	var msup = CToP.createElement('msup');
+	CToP.appendToken(msup,'mo','\u03c3');
+	CToP.appendToken(msup,'mn','2');
+	mrow.appendChild(msup);
+	CToP.appendToken(mrow,'mo','\u2061');
+	mrow.appendChild(CToP.mfenced(args,'(',')'));
+	parentNode.appendChild(mrow);
 }
 CToP.applyTokens['grad'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var mrow = CToP.createElement('mrow');
