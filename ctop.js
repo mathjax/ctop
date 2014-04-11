@@ -671,7 +671,7 @@ CToP.applyTokens = {
 	"forall": CToP.bind('\u2200',','),
 	"exists": CToP.bind('\u2203','\u007c'),
 	"lambda": CToP.bind('\u03BB','.'),
-
+	"limit": CToP.iteration('lim')
 }
 CToP.applyTokens['grad'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var mrow = CToP.createElement('mrow');
