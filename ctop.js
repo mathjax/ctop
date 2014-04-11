@@ -656,7 +656,7 @@ CToP.applyTokens = {
 	"geq": CToP.infix('\u2265',1),
 	"leq": CToP.infix('\u2264',1),
 	"equivalent": CToP.infix('\u2261',1),
-	"approx": CToP.infix('\u2243',1),
+	"approx": CToP.infix('\u2248',1),
 	"union": CToP.infix('\u222A',2),
 	"intersect": CToP.infix('\u2229',3),
 	"subset": CToP.infix('u2286',2),
