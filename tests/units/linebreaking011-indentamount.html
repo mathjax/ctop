@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>linebreaking011-indentamount - ctop errors</title>
+</head>
+<body>
+	<div class="unit">
+		<div class="name"><a href="http://www.w3.org/Math/testsuite/build/main/Topics/LineBreak/linebreaking011-indentamount-form.xhtml" target="_blank">linebreaking011-indentamount</a></div>
+		<img src="http://www.w3.org/Math/testsuite/build/main/Topics/LineBreak/linebreaking011-indentamount.png">
+		<math xmlns="http://www.w3.org/1998/Math/MathML" indentshift="3em" display="block">
+		  <mrow>
+		    <mi>a</mi> 
+		    <mi>b</mi> 
+		    <mo>(</mo> 
+		    <mi>x</mi> 
+		    <mi>y</mi> 
+		    <mi>z</mi> 
+		    <mo>+</mo> 
+		    <mi>y</mi> 
+		    <mi>v</mi> 
+		    <mi>w</mi> 
+		    <mspace linebreak="newline"></mspace> 
+		    <mo>+</mo> 
+		    <mi>q</mi> 
+		    <mi>r</mi> 
+		    <mi>s</mi> 
+		    <mo>+</mo> 
+		    <mi>u</mi> 
+		    <mi>v</mi> 
+		    <mo>)</mo> 
+		    <mstyle indentshift="6em">
+		      <mo linebreak="newline">+</mo> 
+		      <mi>b</mi> 
+		      <mi>c</mi> 
+		      <mo>(</mo> 
+		      <mi>x</mi> 
+		      <mi>y</mi> 
+		      <mi>z</mi> 
+		      <mo>+</mo> 
+		      <mi>y</mi> 
+		      <mi>v</mi> 
+		      <mo linebreak="newline" indentshift="9em">+</mo> 
+		      <mi>c</mi> 
+		      <mi>d</mi> 
+		      <mrow>
+		        <mo>(</mo> 
+		        <mi>a</mi> 
+		        <mi>b</mi> 
+		        <mi>c</mi> 
+		        <mo>+</mo> 
+		        <mi>u</mi> 
+		        <mi>v</mi> 
+		        <mi>w</mi> 
+		        <mo>)</mo> 
+		        <mo>)</mo> 
+		      </mrow> 
+		    </mstyle> 
+		  </mrow> </math>
+	</div>
+
+	<script type="text/x-mathjax-config">
+	  MathJax.Hub.Config({
+		  skipStartupTypeset: true
+	  });
+	</script>
+	<script type="text/javascript"
+		src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+	</script>
+	<script src="../../ctop.js"></script>
+	<script src="../error-tests.js"></script>
+
+	<style type="text/css">
+		.MathJax_Display {
+			text-align: left !important;
+		}
+		.unit {
+			clear: both;
+		}
+		pre {
+			float: right;
+			width: 50%;
+			overflow-y: scroll;
+		}
+	</style>
+</body>
+</html>
+	

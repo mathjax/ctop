@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>linebreaking006-linebreakmultchar - ctop errors</title>
+</head>
+<body>
+	<div class="unit">
+		<div class="name"><a href="http://www.w3.org/Math/testsuite/build/main/Topics/LineBreak/linebreaking006-linebreakmultchar-form.xhtml" target="_blank">linebreaking006-linebreakmultchar</a></div>
+		<img src="http://www.w3.org/Math/testsuite/build/main/Topics/LineBreak/linebreaking006-linebreakmultchar.png">
+		<math xmlns="http://www.w3.org/1998/Math/MathML" linebreakmultchar="⋅" display="block">
+		  <mrow>
+		    <mi>a</mi> 
+		    <mo>⁢</mo> 
+		    <mi>b</mi> 
+		    <mo>⁢</mo> 
+		    <mo>(</mo> 
+		    <mi>x</mi> 
+		    <mo>⁢</mo> 
+		    <mi>y</mi> 
+		    <mo>⁢</mo> 
+		    <mi>z</mi> 
+		    <mo>+</mo> 
+		    <mi>y</mi> 
+		    <mo>⁢</mo> 
+		    <mi>v</mi> 
+		    <mo linebreak="newline">⁢</mo> 
+		    <mi>w</mi> 
+		    <mo>+</mo> 
+		    <mi>q</mi> 
+		    <mo>⁢</mo> 
+		    <mi>r</mi> 
+		    <mo>⁢</mo> 
+		    <mi>s</mi> 
+		    <mo>+</mo> 
+		    <mi>u</mi> 
+		    <mo>⁢</mo> 
+		    <mi>v</mi> 
+		    <mo>)</mo> 
+		    <mstyle linebreakmultchar="·">
+		      <mo>+</mo> 
+		      <mi>b</mi> 
+		      <mo>⁢</mo> 
+		      <mi>c</mi> 
+		      <mo linebreak="newline">⁢</mo> 
+		      <mo>(</mo> 
+		      <mi>x</mi> 
+		      <mo>⁢</mo> 
+		      <mi>y</mi> 
+		      <mo>⁢</mo> 
+		      <mi>z</mi> 
+		      <mo>+</mo> 
+		      <mi>y</mi> 
+		      <mo>⁢</mo> 
+		      <mi>v</mi> 
+		      <mo>+</mo> 
+		      <mi>c</mi> 
+		      <mo linebreak="newline" linebreakmultchar="×">⁢</mo> 
+		      <mi>d</mi> 
+		      <mo>⁢</mo> 
+		      <mrow>
+		        <mo>(</mo> 
+		        <mi>a</mi> 
+		        <mo>⁢</mo> 
+		        <mi>b</mi> 
+		        <mo>⁢</mo> 
+		        <mi>c</mi> 
+		        <mo>+</mo> 
+		        <mi>u</mi> 
+		        <mo>⁢</mo> 
+		        <mi>v</mi> 
+		        <mo>⁢</mo> 
+		        <mi>w</mi> 
+		        <mo>)</mo> 
+		        <mo>)</mo> 
+		      </mrow> 
+		    </mstyle> 
+		  </mrow> </math>
+	</div>
+
+	<script type="text/x-mathjax-config">
+	  MathJax.Hub.Config({
+		  skipStartupTypeset: true
+	  });
+	</script>
+	<script type="text/javascript"
+		src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+	</script>
+	<script src="../../ctop.js"></script>
+	<script src="../error-tests.js"></script>
+
+	<style type="text/css">
+		.MathJax_Display {
+			text-align: left !important;
+		}
+		.unit {
+			clear: both;
+		}
+		pre {
+			float: right;
+			width: 50%;
+			overflow-y: scroll;
+		}
+	</style>
+</body>
+</html>
+	

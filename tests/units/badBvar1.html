@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>badBvar1 - ctop errors</title>
+</head>
+<body>
+	<div class="unit">
+		<div class="name"><a href="http://www.w3.org/Math/testsuite/build/main/ErrorHandling/BadChildren/badBvar1-form.xhtml" target="_blank">badBvar1</a></div>
+		<img src="http://www.w3.org/Math/testsuite/build/main/ErrorHandling/BadChildren/badBvar1.png">
+		
+		<math xmlns="http://www.w3.org/1998/Math/MathML">
+		  <mtable>
+		    <mtr>
+		      <mtd>
+		        <mtext>correct:</mtext> 
+		      </mtd> 
+		      <mtd>
+		        <bvar>
+		          <ci>x</ci> 
+		        </bvar> 
+		      </mtd> 
+		    </mtr> 
+		    <mtr>
+		      <mtd>
+		        <mtext>correct w/ degree</mtext> 
+		      </mtd> 
+		      <mtd>
+		        <bvar>
+		          <ci>x</ci> 
+		          <degree>
+		            <cn>2</cn> 
+		          </degree> 
+		        </bvar> 
+		      </mtd> 
+		    </mtr> 
+		    <mtr>
+		      <mtd>
+		        <mtext>missing &lt;ci&gt;:</mtext> 
+		      </mtd> 
+		      <mtd>
+		        <bvar></bvar> 
+		      </mtd> 
+		    </mtr> 
+		    <mtr>
+		      <mtd>
+		        <mtext>missing &lt;ci&gt; w/ degree:</mtext> 
+		      </mtd> 
+		      <mtd>
+		        <bvar>
+		          <degree>
+		            <cn>2</cn> 
+		          </degree> 
+		        </bvar> 
+		      </mtd> 
+		    </mtr> 
+		    <mtr>
+		      <mtd>
+		        <mtext>2 &lt;ci&gt;s</mtext> 
+		      </mtd> 
+		      <mtd>
+		        <bvar>
+		          <ci>x</ci> 
+		          <ci>y</ci> 
+		        </bvar> 
+		      </mtd> 
+		    </mtr> 
+		    <mtr>
+		      <mtd>
+		        <mtext>2 w/ degree</mtext> 
+		      </mtd> 
+		      <mtd>
+		        <bvar>
+		          <ci>x</ci> 
+		          <ci>y</ci> 
+		          <degree>
+		            <cn>2</cn> 
+		          </degree> 
+		        </bvar> 
+		      </mtd> 
+		    </mtr> 
+		    <mtr>
+		      <mtd>
+		        <mtext>&#x003c;mi/&#x0003E;used</mtext> 
+		      </mtd> 
+		      <mtd>
+		        <bvar>
+		          <mi>x</mi> 
+		        </bvar> 
+		      </mtd> 
+		    </mtr> 
+		    <mtr>
+		      <mtd>
+		        <mtext>&#x003c;mi/&#x0003E;used w/ degree</mtext> 
+		      </mtd> 
+		      <mtd>
+		        <bvar>
+		          <mi>x</mi> 
+		          <degree>
+		            <cn>2</cn> 
+		          </degree> 
+		        </bvar> 
+		      </mtd> 
+		    </mtr> 
+		    <mtr>
+		      <mtd>
+		        <mtext>missing &lt;ci&gt;, 2 degrees</mtext> 
+		      </mtd> 
+		      <mtd>
+		        <bvar>
+		          <degree>
+		            <cn>4</cn> 
+		          </degree> 
+		          <degree>
+		            <cn>2</cn> 
+		          </degree> 
+		        </bvar> 
+		      </mtd> 
+		    </mtr> 
+		  </mtable> 
+		</math>
+	</div>
+
+	<script type="text/x-mathjax-config">
+	  MathJax.Hub.Config({
+		  skipStartupTypeset: true
+	  });
+	</script>
+	<script type="text/javascript"
+		src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+	</script>
+	<script src="../../ctop.js"></script>
+	<script src="../error-tests.js"></script>
+
+	<style type="text/css">
+		.MathJax_Display {
+			text-align: left !important;
+		}
+		.unit {
+			clear: both;
+		}
+		pre {
+			float: right;
+			width: 50%;
+			overflow-y: scroll;
+		}
+	</style>
+</body>
+</html>
+	

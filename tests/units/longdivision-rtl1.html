@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>longdivision-rtl1 - ctop errors</title>
+</head>
+<body>
+	<div class="unit">
+		<div class="name"><a href="http://www.w3.org/Math/testsuite/build/main/Topics/BiDi/RTL/longdivision-rtl1-form.xhtml" target="_blank">longdivision-rtl1</a></div>
+		<img src="http://www.w3.org/Math/testsuite/build/main/Topics/BiDi/RTL/longdivision-rtl1.png">
+		<math xmlns="http://www.w3.org/1998/Math/MathML" display="block" dir="rtl">  <mlongdiv longdivstyle="stackedleftlinetop">
+		    <mn>١١</mn> 
+		    <mn>١٢٠</mn> 
+		    <msgroup>
+		      <mn>١٣٢٠</mn> 
+		      <msrow position="2">
+		        <mn>١١</mn> 
+		        <mo>-</mo> 
+		      </msrow> 
+		    </msgroup> 
+		    <msline length="2" position="2"></msline> 
+		    <msgroup position="1">
+		      <mn>٢٢</mn> 
+		      <msrow>
+		        <mn>٢٢</mn>
+		        <mo>-</mo> 
+		      </msrow> 
+		      <msline length="2"></msline> 
+		    </msgroup> 
+		    <mn>صفر</mn>   </mlongdiv> </math>
+	</div>
+
+	<script type="text/x-mathjax-config">
+	  MathJax.Hub.Config({
+		  skipStartupTypeset: true
+	  });
+	</script>
+	<script type="text/javascript"
+		src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+	</script>
+	<script src="../../ctop.js"></script>
+	<script src="../error-tests.js"></script>
+
+	<style type="text/css">
+		.MathJax_Display {
+			text-align: left !important;
+		}
+		.unit {
+			clear: both;
+		}
+		pre {
+			float: right;
+			width: 50%;
+			overflow-y: scroll;
+		}
+	</style>
+</body>
+</html>
+	

@@ -1,0 +1,70 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>rec-divergence2 - ctop errors</title>
+</head>
+<body>
+	<div class="unit">
+		<div class="name"><a href="http://www.w3.org/Math/testsuite/build/main/StrictContent/Calculus/divergence/rec-divergence2-form.xhtml" target="_blank">rec-divergence2</a></div>
+		<img src="http://www.w3.org/Math/testsuite/build/main/StrictContent/Calculus/divergence/rec-divergence2.png">
+		<math xmlns="http://www.w3.org/1998/Math/MathML">
+		  <apply>
+		    <csymbol cd="limit1">limit</csymbol> 
+		    <cn>0</cn> 
+		    <csymbol cd="limit1">null</csymbol> 
+		    <bind>
+		      <csymbol cd="fns1">lambda</csymbol> 
+		      <bvar>
+		        <ci>V</ci> 
+		      </bvar> 
+		      <apply>
+		        <csymbol cd="arith1">divide</csymbol> 
+		        <apply>
+		          <apply>
+		            <csymbol cd="calculus1">int</csymbol> 
+		            <bind>
+		              <csymbol cd="fns1">lambda</csymbol> 
+		              <bvar>
+		                <ci>S</ci> 
+		              </bvar> 
+		              <ci>a</ci> 
+		            </bind> 
+		          </apply> 
+		          <ci>S</ci> 
+		        </apply> 
+		        <ci>V</ci> 
+		      </apply> 
+		    </bind> 
+		  </apply> 
+		</math>
+	</div>
+
+	<script type="text/x-mathjax-config">
+	  MathJax.Hub.Config({
+		  skipStartupTypeset: true
+	  });
+	</script>
+	<script type="text/javascript"
+		src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+	</script>
+	<script src="../../ctop.js"></script>
+	<script src="../error-tests.js"></script>
+
+	<style type="text/css">
+		.MathJax_Display {
+			text-align: left !important;
+		}
+		.unit {
+			clear: both;
+		}
+		pre {
+			float: right;
+			width: 50%;
+			overflow-y: scroll;
+		}
+	</style>
+</body>
+</html>
+	

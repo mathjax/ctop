@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>rec-forall4 - ctop errors</title>
+</head>
+<body>
+	<div class="unit">
+		<div class="name"><a href="http://www.w3.org/Math/testsuite/build/main/StrictContent/ArithmeticAlgebraLogic/forall/rec-forall4-form.xhtml" target="_blank">rec-forall4</a></div>
+		<img src="http://www.w3.org/Math/testsuite/build/main/StrictContent/ArithmeticAlgebraLogic/forall/rec-forall4.png">
+		<math xmlns="http://www.w3.org/1998/Math/MathML">
+		  <bind>
+		    <csymbol cd="quant1">forall</csymbol> 
+		    <bvar>
+		      <ci>n</ci> 
+		    </bvar> 
+		    <apply>
+		      <csymbol cd="logic1">implies</csymbol> 
+		      <apply>
+		        <csymbol cd="set1">in</csymbol> 
+		        <ci>n</ci> 
+		        <apply>
+		          <csymbol cd="set1">suchthat</csymbol> 
+		          <ci>R</ci> 
+		          <bind>
+		            <csymbol cd="fns1">lambda</csymbol> 
+		            <bvar>
+		              <ci>n</ci> 
+		            </bvar> 
+		            <apply>
+		              <csymbol cd="logic1">and</csymbol> 
+		              <apply>
+		                <csymbol cd="relation1">gt</csymbol> 
+		                <ci>n</ci> 
+		                <cn>0</cn> 
+		              </apply> 
+		              <apply>
+		                <csymbol cd="set1">in</csymbol> 
+		                <ci>n</ci> 
+		                <csymbol cd="setname1">Z</csymbol> 
+		              </apply> 
+		            </apply> 
+		          </bind> 
+		        </apply> 
+		      </apply> 
+		      <bind>
+		        <csymbol cd="quant1">exists</csymbol> 
+		        <bvar>
+		          <ci>x</ci> 
+		        </bvar> 
+		        <bvar>
+		          <ci>y</ci> 
+		        </bvar> 
+		        <bvar>
+		          <ci>z</ci> 
+		        </bvar> 
+		        <apply>
+		          <csymbol cd="logic1">and</csymbol> 
+		          <apply>
+		            <csymbol cd="set1">in</csymbol> 
+		            <ci>x</ci> 
+		            <ci>y</ci> 
+		            <ci>z</ci> 
+		            <apply>
+		              <csymbol cd="set1">suchthat</csymbol> 
+		              <ci>R</ci> 
+		              <bind>
+		                <csymbol cd="fns1">lambda</csymbol> 
+		                <bvar>
+		                  <ci>x</ci> 
+		                </bvar> 
+		                <bvar>
+		                  <ci>y</ci> 
+		                </bvar> 
+		                <bvar>
+		                  <ci>z</ci> 
+		                </bvar> 
+		                <apply>
+		                  <csymbol cd="logic1">and</csymbol> 
+		                  <apply>
+		                    <csymbol cd="set1">in</csymbol> 
+		                    <ci>x</ci> 
+		                    <csymbol cd="setname1">Z</csymbol> 
+		                  </apply> 
+		                  <apply>
+		                    <csymbol cd="set1">in</csymbol> 
+		                    <ci>y</ci> 
+		                    <csymbol cd="setname1">Z</csymbol> 
+		                  </apply> 
+		                  <apply>
+		                    <csymbol cd="set1">in</csymbol> 
+		                    <ci>z</ci> 
+		                    <csymbol cd="setname1">Z</csymbol> 
+		                  </apply> 
+		                </apply> 
+		              </bind> 
+		            </apply> 
+		          </apply> 
+		          <apply>
+		            <csymbol cd="relation1">eq</csymbol> 
+		            <apply>
+		              <csymbol cd="arith1">plus</csymbol> 
+		              <apply>
+		                <csymbol cd="arith1">power</csymbol> 
+		                <ci>x</ci> 
+		                <ci>n</ci> 
+		              </apply> 
+		              <apply>
+		                <csymbol cd="arith1">power</csymbol> 
+		                <ci>y</ci> 
+		                <ci>n</ci> 
+		              </apply> 
+		            </apply> 
+		            <apply>
+		              <csymbol cd="arith1">power</csymbol> 
+		              <ci>z</ci> 
+		              <ci>n</ci> 
+		            </apply> 
+		          </apply> 
+		        </apply> 
+		      </bind> 
+		    </apply> 
+		  </bind> 
+		</math>
+	</div>
+
+	<script type="text/x-mathjax-config">
+	  MathJax.Hub.Config({
+		  skipStartupTypeset: true
+	  });
+	</script>
+	<script type="text/javascript"
+		src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+	</script>
+	<script src="../../ctop.js"></script>
+	<script src="../error-tests.js"></script>
+
+	<style type="text/css">
+		.MathJax_Display {
+			text-align: left !important;
+		}
+		.unit {
+			clear: both;
+		}
+		pre {
+			float: right;
+			width: 50%;
+			overflow-y: scroll;
+		}
+	</style>
+</body>
+</html>
+	

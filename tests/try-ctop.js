@@ -28,18 +28,16 @@ function formatXml(xml) {
  
     return formatted;
 }
+function doTransform() {
+	var content = document.querySelector('#content-mml').value;
+	var output = document.querySelector('#output');
+	output.innerHTML = content;
+	CToP.transform(output.querySelectorAll('math'));
+	var presentation = formatXml(output.innerHTML);
+	document.querySelector('#presentation-mml').textContent = presentation;
+	MathJax.Hub.Queue(['Typeset',MathJax.Hub,output]);
+}
 
-Array.prototype.map.call(document.querySelectorAll('.unit'),function(unit) {
-	try {
-		var mathNodes = unit.querySelectorAll('math');
-		CToP.transform(mathNodes);
-		var math = unit.querySelector('math').outerHTML;
-		var t = document.createElement('pre');
-		t.textContent = formatXml(math);
-		unit.appendChild(t);
-		MathJax.Hub.Queue(["Typeset",MathJax.Hub,unit]);
-	}
-	catch(e) {
-		console.log(e);
-	}
-})
+document.querySelector('#transform').onclick = doTransform;
+document.querySelector('#content-mml').onchange = doTransform;
+document.querySelector('#content-mml').onkeyup = doTransform;

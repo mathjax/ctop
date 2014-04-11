@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>rec-max2 - ctop errors</title>
+</head>
+<body>
+	<div class="unit">
+		<div class="name"><a href="http://www.w3.org/Math/testsuite/build/main/StrictContent/ArithmeticAlgebraLogic/max/rec-max2-form.xhtml" target="_blank">rec-max2</a></div>
+		<img src="http://www.w3.org/Math/testsuite/build/main/StrictContent/ArithmeticAlgebraLogic/max/rec-max2.png">
+		<math xmlns="http://www.w3.org/1998/Math/MathML">
+		  <apply>
+		    <csymbol cd="minmax1">max</csymbol> 
+		    <apply>
+		      <csymbol cd="set1">suchthat</csymbol> 
+		      <ci>R</ci> 
+		      <bind>
+		        <csymbol cd="fns1">lambda</csymbol> 
+		        <bvar>
+		          <ci>x</ci> 
+		        </bvar> 
+		        <apply>
+		          <csymbol cd="logic1">and</csymbol> 
+		          <apply>
+		            <csymbol cd="set1">in</csymbol> 
+		            <ci>x</ci> 
+		            <semantics>
+		              <ci>B</ci> 
+		              <annotation-xml cd="mathmltypes" name="type" encoding="MathML-Content">
+		                <ci>set</ci> 
+		              </annotation-xml> 
+		            </semantics> 
+		          </apply> 
+		          <apply>
+		            <csymbol cd="set1">notin</csymbol> 
+		            <ci>x</ci> 
+		            <semantics>
+		              <ci>C</ci> 
+		              <annotation-xml cd="mathmltypes" name="type" encoding="MathML-Content">
+		                <ci>set</ci> 
+		              </annotation-xml> 
+		            </semantics> 
+		          </apply> 
+		        </apply> 
+		      </bind> 
+		    </apply> 
+		  </apply> 
+		</math>
+	</div>
+
+	<script type="text/x-mathjax-config">
+	  MathJax.Hub.Config({
+		  skipStartupTypeset: true
+	  });
+	</script>
+	<script type="text/javascript"
+		src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+	</script>
+	<script src="../../ctop.js"></script>
+	<script src="../error-tests.js"></script>
+
+	<style type="text/css">
+		.MathJax_Display {
+			text-align: left !important;
+		}
+		.unit {
+			clear: both;
+		}
+		pre {
+			float: right;
+			width: 50%;
+			overflow-y: scroll;
+		}
+	</style>
+</body>
+</html>
+	
