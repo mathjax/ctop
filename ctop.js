@@ -215,7 +215,7 @@ var CToP = {
 				}
 			}
 			munderover.appendChild(mrow1);
-			var mjrow = CToP.createElement('mjrow');
+			var mjrow = CToP.createElement('mrow');
 			for(var i=0; i<qualifiers.length;i++){
 				if(qualifiers[i].localName=='uplimit' ||qualifiers[i].localName=='interval' )
 				{
