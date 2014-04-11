@@ -238,21 +238,10 @@ var CToP = {
 	 *
 	 * (function factory)
 	 */
-	bind: function(name) {
+	bind: function(name,argSeparator) {
 		return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 			var mrow = CToP.createElement('mrow');
 			CToP.appendToken(mrow,'mo',name);
-			var conditions = false, children;
-			for(var i=0; i<qualifiers.length;i++){
-				if(qualifiers[i].localName=='condition')	{
-					conditions = true;
-					children = CToP.children(qualifiers[i]);
-					for(var j=0;j<children.length;j++){
-						CToP.applyTransform(mrow,children[j],0);
-					}
-				}
-			}
-			if(!conditions){
 				for(var j=0; j<bvars.length;j++){
 					var bvar = bvars[j];
 					var children = CToP.children(bvar);
@@ -260,7 +249,22 @@ var CToP = {
 						CToP.applyTransform(mrow,children[0],0);
 					}
 				}
+
+			var conditions_mrow = CToP.createElement('mrow');
+			var conditions = false, children;
+			for(var i=0; i<qualifiers.length;i++){
+				if(qualifiers[i].localName=='condition')	{
+					conditions = true;
+					children = CToP.children(qualifiers[i]);
+					for(var j=0;j<children.length;j++){
+						CToP.applyTransform(conditions_mrow,children[j],0);
+					}
+				}
 			}
+			if(conditions){
+				CToP.appendToken(mrow,'mo',',');
+			}
+			mrow.appendChild(conditions_mrow);
 			for(var i=0; i<qualifiers.length;i++){
 				if(qualifiers[i].localName!='condition')	{
 					CToP.appendToken(mrow,'mo','\u2208');
@@ -271,7 +275,7 @@ var CToP = {
 				}
 			}
 			if(bvars.length||children.length){
-				CToP.appendToken(mrow,'mo','.');
+				CToP.appendToken(mrow,'mo',argSeparator);
 			}
 			for(var i=0; i<args.length;i++){
 				CToP.applyTransform(mrow,args[i],0);
@@ -661,9 +665,9 @@ CToP.applyTokens = {
 	"outerproduct": CToP.infix('\u2297',2),
 	"sum": CToP.iteration('\u2211'),
 	"product": CToP.iteration('\u220F'),
-	"forall": CToP.bind('\u2200'),
-	"exists": CToP.bind('\u2203'),
-	"lambda": CToP.bind('\u03BB'),
+	"forall": CToP.bind('\u2200',','),
+	"exists": CToP.bind('\u2203','\u007c'),
+	"lambda": CToP.bind('\u03BB','.'),
 
 }
 CToP.applyTokens['tendsto'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
