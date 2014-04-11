@@ -340,6 +340,31 @@ CToP.tokens = {
 	"false": CToP.identifier('false'),
 }
 
+CToP.tokens['interval'] = function(parentNode,contentMMLNode,precedence) {
+	var closure = contentMMLNode.getAttribute('closure');
+
+	var open, close;
+	switch(closure) {
+		case 'open':
+			open = '(';
+			close = ')';
+			break;
+		case 'open-closed':
+			open = '(';
+			close = ']';
+			break;
+		case 'closed-open':
+			open = '[';
+			close = ')';
+			break;
+		case 'closed':
+		default:
+			open = '[';
+			close = ']';
+	}
+
+	parentNode.appendChild(CToP.mfenced(CToP.children(contentMMLNode),open,close));
+}
 CToP.tokens['apply'] = CToP.tokens['reln'] = CToP.tokens['bind'] = function(parentNode,contentMMLNode,precedence) {
 	var firstArg=null;
 	var args = [], bvars = [], qualifiers = [];
