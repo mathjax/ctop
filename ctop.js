@@ -185,8 +185,7 @@ var CToP = {
 							var bvar = bvars[j];
 							var children = CToP.children(bvar);
 							if(children.length){
-								mrow1.appendChild(children[0]);
-								CToP.applyTransform(bvar,0);	// ???? This needs three arguments
+								CToP.applyTransform(mrow1,children[0],0);
 							}
 						}
 						if(bvars.length){
@@ -227,9 +226,11 @@ var CToP = {
 			}
 			munderover.appendChild(mjrow);
 			mrow.appendChild(munderover);
+
 			for(var i=0; i<args.length;i++){
-				CToP.applyTransform(mrow,args[i],0);
+				CToP.applyTransform(mrow,args[i],precedence);
 			}
+
 			parentNode.appendChild(mrow);
 		}
 	},
@@ -726,8 +727,6 @@ CToP.applyTokens = {
 	"eq": CToP.infix('=',1),
 	"compose": CToP.infix('\u2218',1),
 	"left_compose": CToP.infix('\u2218',1),
-	"and": CToP.infix('\u2227',2),
-	"or": CToP.infix('\u2228',3),
 	"xor": CToP.infix('xor',3),
 	"neq": CToP.infix('\u2260',1),
 	"gt": CToP.infix('>',1),	// ???? gt and lt were the other way round in ctop.js!
@@ -755,7 +754,27 @@ CToP.applyTokens = {
 	"max": CToP.minmax('max'),
 	"min": CToP.minmax('min')
 }
-
+CToP.applyTokens['and'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	if(bvars.length || qualifiers.length) {
+		CToP.iteration('\u22c0')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,4);
+	} else {
+		CToP.infix('\u2227',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+	}
+}
+CToP.applyTokens['or'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	if(bvars.length || qualifiers.length) {
+		CToP.iteration('\u22c1')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,4);
+	} else {
+		CToP.infix('\u2228',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+	}
+}
+CToP.applyTokens['xor'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	if(bvars.length || qualifiers.length) {
+		CToP.iteration('xor')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,4);
+	} else {
+		CToP.infix('xor',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+	}
+}
 CToP.applyTokens['card'] = CToP.applyTokens['size'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var mrow = CToP.createElement('mrow');
 	CToP.appendToken(mrow,'mo','|');
@@ -864,7 +883,7 @@ CToP.applyTokens['divergence'] = function(parentNode,contentMMLNode,firstArg,arg
 CToP.applyTokens['not'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var mrow = CToP.createElement('mrow');
 	CToP.appendToken(mrow,'mo','\u00ac');
-	var needsBrackets = args[0].localName=='apply';
+	var needsBrackets = args[0].localName=='apply' || args[0].localName=='bind';
 	if(needsBrackets) {
 		CToP.appendToken(mrow,'mo','(');
 	}
