@@ -72,6 +72,7 @@ var CToP = {
 		var element = CToP.createElement(name);
 		element.textContent = textContent;
 		parentNode.appendChild(element);
+		return element;
 	},
 
 	/* Transform a Content MathML node to Presentation MathML node(s), and attach it to the parent
@@ -387,10 +388,26 @@ var CToP = {
 	}
 }
 
+/* mathvariant to use with corresponding <ci> type attribute
+CToP.cistyles = {
+	"vector": 'bold-italic',
+	"matrix": 'bold-upright'
+}
+
 /* Functions to transform variable/atom tokens
  */
 CToP.tokens = {
-	"ci": CToP.token('mi'),
+	"ci": function(parentNode,contentMMLNode,precedence) {
+		if(contentMMLNode.childNodes.length==1 && contentMMLNode.childNodes[0].nodeType==document.TEXT_NODE) {
+			var mi = CToP.appendToken(parentNode,'mi',contentMMLNode.textContent);
+			var type = contentMMLNode.getAttribute('type');
+			if(type in CToP.cistyles) {
+				mi.setAttribute('mathvariant',CToP.cistyles[type]);
+			}
+		} else {
+			CToP.token('mi')(parentNode,contentMMLNode,precedence);
+		}
+	},
 	"cs": CToP.token('ms'),
 
 	"csymbol": function(parentNode,contentMMLNode,precedence) {
