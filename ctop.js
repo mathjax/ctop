@@ -345,12 +345,12 @@ var CToP = {
 		return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 			var mrow = CToP.createElement('mrow');
 			if(firstArg.childNodes.length){
-				CToP.applyTransform(mrow,firstArg,0);
+				CToP.applyTransform(mrow,firstArg,1);
 			} else {
 				CToP.appendToken(mrow,'mi',name);
 			}
 			CToP.appendToken(mrow,'mo','\u2061');
-			if(args.length==1 && !(args[0].localName=='apply' || args[0].localName=='reln' || args[0].localName=='bind')) {
+			if(precedence<2 && args.length==1 && !(args[0].localName=='apply' || args[0].localName=='reln' || args[0].localName=='bind')) {
 				CToP.applyTransform(mrow,args[0],precedence);
 			} else {
 				mrow.appendChild(CToP.mfenced(args,'(',')'));
@@ -761,7 +761,7 @@ CToP.applyTokens = {
 	"notprsubset": CToP.binary('\u2284',2),
 	"setdiff": CToP.binary('\u2216',2),
 	"eq": CToP.infix('=',1),
-	"compose": CToP.infix('\u2218',1),
+	"compose": CToP.infix('\u2218',0),
 	"left_compose": CToP.infix('\u2218',1),
 	"xor": CToP.infix('xor',3),
 	"neq": CToP.infix('\u2260',1),
