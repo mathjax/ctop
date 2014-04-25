@@ -482,6 +482,7 @@ CToP.tokens['cn'] = function(parentNode,contentMMLNode,precedence) {
 			case 'integer':
 			case 'real':
 			case 'double':
+			case 'constant':
 				CToP.token('mn')(parentNode,contentMMLNode);
 				break;
 			case 'hexdouble':
