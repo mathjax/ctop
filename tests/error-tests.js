@@ -41,5 +41,6 @@ Array.prototype.map.call(document.querySelectorAll('.unit'),function(unit) {
 	}
 	catch(e) {
 		console.log(e);
+		console.log(e.stack);
 	}
 })
