@@ -117,7 +117,7 @@ var CToP = {
 	/* Transform a set or set-like notation
 	 */
 	set: function(open,close) {
-		var bindSet = CToP.bind('',',');
+		var bindSet = CToP.bind('',',','|');
 		return function(parentNode,contentMMLNode) {
 			var children = CToP.classifyChildren(contentMMLNode);
 
@@ -287,7 +287,7 @@ var CToP = {
 	 *
 	 * (function factory)
 	 */
-	bind: function(name,argSeparator) {
+	bind: function(name,argSeparator,conditionSeparator) {
 		return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 			var mrow = CToP.createElement('mrow');
 			if(name) {
@@ -313,7 +313,7 @@ var CToP = {
 				}
 			}
 			if(conditions){
-				CToP.appendToken(mrow,'mo',',');
+				CToP.appendToken(mrow,'mo',conditionSeparator);
 			}
 			mrow.appendChild(conditions_mrow);
 			for(var i=0; i<qualifiers.length;i++){
@@ -771,9 +771,9 @@ CToP.applyTokens = {
 	"outerproduct": CToP.infix('\u2297',2),
 	"sum": CToP.iteration('\u2211'),
 	"product": CToP.iteration('\u220F'),
-	"forall": CToP.bind('\u2200',','),
-	"exists": CToP.bind('\u2203','\u007c'),
-	"lambda": CToP.bind('\u03BB','.'),
+	"forall": CToP.bind('\u2200',',',','),
+	"exists": CToP.bind('\u2203','\u007c',','),
+	"lambda": CToP.bind('\u03BB','.',','),
 	"limit": CToP.iteration('lim'),
 	"sdev": CToP.fn('\u03c3'),
 	"max": CToP.minmax('max'),
