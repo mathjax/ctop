@@ -714,7 +714,7 @@ CToP.applyTokens = {
 	"divide": CToP.binary('/',3),
 	"remainder": CToP.binary('mod',3),
 	"implies": CToP.binary('\u21D2',3),
-	"factorof": CToP.binary('\21D2',3),
+	"factorof": CToP.binary('|',3),
 	"in": CToP.binary('\u2208',3),
 	"notin": CToP.binary('\u2209',3),
 	"notsubset": CToP.binary('\u2288',2),
