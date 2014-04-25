@@ -781,6 +781,7 @@ CToP.applyTokens = {
 	"lambda": CToP.bind('\u03BB','.',','),
 	"limit": CToP.iteration('lim','\u2192'),
 	"sdev": CToP.fn('\u03c3'),
+	"determinant": CToP.fn('det'),
 	"max": CToP.minmax('max'),
 	"min": CToP.minmax('min'),
 	"real": CToP.fn('\u211b'),
@@ -1098,6 +1099,13 @@ CToP.applyTokens["plus"] = function(parentNode,contentMMLNode,firstArg,args,bvar
 		CToP.appendToken(mrow,'mo',')');
 	}
 	parentNode.appendChild(mrow);
+}
+
+CToP.applyTokens['transpose'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	var msup = CToP.createElement('msup');
+	CToP.applyTransform(msup,args[0],precedence);
+	CToP.appendToken(msup,'mi','T');
+	parentNode.appendChild(msup);
 }
 
 CToP.applyTokens['power'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
