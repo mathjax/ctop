@@ -121,9 +121,10 @@ var CToP = {
 		return function(parentNode,contentMMLNode) {
 			var children = CToP.classifyChildren(contentMMLNode);
 
-			var firstArg=children.args[0];
-			var args = children.args.slice(1), bvars = children.bvars, qualifiers = children.qualifiers;
+			var args = children.args, bvars = children.bvars, qualifiers = children.qualifiers;
 			if(bvars.length) {
+				var firstArg=children.args[0];
+				args = args.slice(1);
 				var mfenced = CToP.createElement('mfenced');
 				mfenced.setAttribute('open',open);
 				mfenced.setAttribute('close',close);
