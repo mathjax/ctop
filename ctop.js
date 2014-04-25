@@ -51,7 +51,7 @@ var CToP = {
 						name=='logbase'||
 						name=='lowlimit'||
 						name=='uplimit'||
-						(name=='interval' && !(args.length))||
+						(name=='interval' && args.length<2)||
 						name=='domainofapplication') {
 							qualifiers.push(childNode);
 				} else {
