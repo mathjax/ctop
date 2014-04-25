@@ -574,7 +574,7 @@ CToP.tokens['otherwise'] = function(parentNode,contentMMLNode,precedence) {
 
 CToP.tokens['matrix'] = function(parentNode,contentMMLNode,precedence) {
 	var children = CToP.classifyChildren(contentMMLNode);
-	var args = children.args.slice(1), bvars = children.bvars, qualifiers = children.qualifiers;
+	var args = children.args, bvars = children.bvars, qualifiers = children.qualifiers;
 
 	if(bvars.length || qualifiers.length) {
 		var mrow = CToP.createElement('mrow');
