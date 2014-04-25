@@ -295,6 +295,9 @@ var CToP = {
 			}
 			for(var j=0; j<bvars.length;j++){
 				var bvar = bvars[j];
+				if(j>0) {
+					CToP.appendToken(mrow,'mo',',');
+				}
 				var children = CToP.children(bvar);
 				if(children.length){
 					CToP.applyTransform(mrow,children[0],0);
