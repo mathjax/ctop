@@ -511,6 +511,25 @@ CToP.tokens['cn'] = function(parentNode,contentMMLNode,precedence) {
 	}
 }
 
+CToP.tokens['vector'] = function(parentNode,contentMMLNode,precedence) {
+	var mrow = CToP.createElement('mrow');
+	CToP.appendToken(mrow,'mo','(');
+
+	var mtable = CToP.createElement('mtable');
+	var children = CToP.children(contentMMLNode);
+	for(var i=0;i<children.length;i++) {
+		var mtr = CToP.createElement('mtr');
+		var mtd = CToP.createElement('mtd');
+		CToP.applyTransform(mtd,children[i],0);
+		mtr.appendChild(mtd);
+		mtable.appendChild(mtr);
+	}
+
+	mrow.appendChild(mtable);
+	CToP.appendToken(mrow,'mo',')');
+	parentNode.appendChild(mrow);
+}
+
 CToP.tokens['piecewise'] = function(parentNode,contentMMLNode,precedence) {
 	var mrow = CToP.createElement('mrow');
 	CToP.appendToken(mrow,'mo','{');
