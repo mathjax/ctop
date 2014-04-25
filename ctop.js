@@ -36,6 +36,36 @@ var CToP = {
 		return children;
 	},
 
+	/* Classify node's children as argumentss, variable bindings, or qualifiers
+	 */
+	classifyChildren: function(contentMMLNode) {
+		var args = [], bvars = [], qualifiers = [];
+		for(var j=0;j<contentMMLNode.childNodes.length; j++ ) {
+			if(contentMMLNode.childNodes[j].nodeType==document.ELEMENT_NODE) {
+				var childNode = contentMMLNode.childNodes[j], name = childNode.localName;
+				if(name=='bvar'){
+					bvars.push(childNode);
+				} else if(name=='condition'||
+						name=='degree'||
+						name=='momentabout'||
+						name=='logbase'||
+						name=='lowlimit'||
+						name=='uplimit'||
+						(name=='interval' && !(args.length))||
+						name=='domainofapplication') {
+							qualifiers.push(childNode);
+				} else {
+					args.push(childNode);
+				}
+			}
+		}
+		return {
+			args:args, 
+			bvars:bvars, 
+			qualifiers:qualifiers
+		};
+	},
+
 	/* Add an element with given name and text content
 	 */
 	appendToken: function(parentNode,name,textContent) {
@@ -86,8 +116,23 @@ var CToP = {
 
 	/* Transform a set or set-like notation
 	 */
-	set: function(parentNode,args,open,close) {
-		parentNode.appendChild(CToP.mfenced(args,open,close));
+	set: function(open,close) {
+		var bindSet = CToP.bind('',',');
+		return function(parentNode,contentMMLNode) {
+			var children = CToP.classifyChildren(contentMMLNode);
+
+			var firstArg=children.args[0];
+			var args = children.args.slice(1), bvars = children.bvars, qualifiers = children.qualifiers;
+			if(bvars.length) {
+				var mfenced = CToP.createElement('mfenced');
+				mfenced.setAttribute('open',open);
+				mfenced.setAttribute('close',close);
+				bindSet(mfenced,contentMMLNode,firstArg,args,bvars,qualifiers,0);
+				parentNode.appendChild(mfenced);
+			} else {
+				parentNode.appendChild(CToP.mfenced(args,open,close));
+			}
+		}
 	},
 
 	/* Transform a content token to a presentation token
@@ -244,14 +289,16 @@ var CToP = {
 	bind: function(name,argSeparator) {
 		return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 			var mrow = CToP.createElement('mrow');
-			CToP.appendToken(mrow,'mo',name);
-				for(var j=0; j<bvars.length;j++){
-					var bvar = bvars[j];
-					var children = CToP.children(bvar);
-					if(children.length){
-						CToP.applyTransform(mrow,children[0],0);
-					}
+			if(name) {
+				CToP.appendToken(mrow,'mo',name);
+			}
+			for(var j=0; j<bvars.length;j++){
+				var bvar = bvars[j];
+				var children = CToP.children(bvar);
+				if(children.length){
+					CToP.applyTransform(mrow,children[0],0);
 				}
+			}
 
 			var conditions_mrow = CToP.createElement('mrow');
 			var conditions = false, children;
@@ -277,7 +324,7 @@ var CToP = {
 					}
 				}
 			}
-			if(bvars.length||children.length){
+			if(args.length && (bvars.length||children.length)) {
 				CToP.appendToken(mrow,'mo',argSeparator);
 			}
 			for(var i=0; i<args.length;i++){
@@ -373,6 +420,8 @@ CToP.tokens = {
 	"emptyset": CToP.identifier('\u2205'),
 	"true": CToP.identifier('true'),
 	"false": CToP.identifier('false'),
+	'set': CToP.set('{','}'),
+	'list': CToP.set('(',')')
 }
 
 CToP.tokens['interval'] = function(parentNode,contentMMLNode,precedence) {
@@ -401,30 +450,10 @@ CToP.tokens['interval'] = function(parentNode,contentMMLNode,precedence) {
 	parentNode.appendChild(CToP.mfenced(CToP.children(contentMMLNode),open,close));
 }
 CToP.tokens['apply'] = CToP.tokens['reln'] = CToP.tokens['bind'] = function(parentNode,contentMMLNode,precedence) {
-	var firstArg=null;
-	var args = [], bvars = [], qualifiers = [];
+	var children = CToP.classifyChildren(contentMMLNode);
 
-	for(var j=0;j<contentMMLNode.childNodes.length; j++ ) {
-		if(contentMMLNode.childNodes[j].nodeType==document.ELEMENT_NODE) {
-			var childNode = contentMMLNode.childNodes[j], name = childNode.localName;
-			if(name=='bvar'){
-				bvars.push(childNode);
-			} else if(name=='condition'||
-					name=='degree'||
-					name=='momentabout'||
-					name=='logbase'||
-					name=='lowlimit'||
-					name=='uplimit'||
-					(name=='interval' && !(args.length))||
-					name=='domainofapplication') {
-						qualifiers.push(childNode);
-					} else if(firstArg==null){
-						firstArg = childNode;		
-					} else {
-						args.push(childNode);
-					}
-		}
-	}
+	var firstArg=children.args[0];
+	var args = children.args.slice(1), bvars = children.bvars, qualifiers = children.qualifiers;
 
 	if(firstArg) {
 		var name = firstArg.localName;
@@ -472,14 +501,6 @@ CToP.tokens['cn'] = function(parentNode,contentMMLNode,precedence) {
 	}
 }
 
-CToP.tokens['set'] = function(parentNode,contentMMLNode,precedence) {
-	CToP.set(parentNode,CToP.children(contentMMLNode),'{','}');
-}
-
-CToP.tokens['list'] = function(parentNode,contentMMLNode,precedence) {
-	CToP.set(parentNode,CToP.children(contentMMLNode),'(',')');
-}
-
 CToP.tokens['piecewise'] = function(parentNode,contentMMLNode,precedence) {
 	var mrow = CToP.createElement('mrow');
 	CToP.appendToken(mrow,'mo','{');
@@ -524,19 +545,8 @@ CToP.tokens['otherwise'] = function(parentNode,contentMMLNode,precedence) {
 }
 
 CToP.tokens['matrix'] = function(parentNode,contentMMLNode,precedence) {
-	var args = [], bvars = [], qualifiers = [];
-	for(var j=0;j<contentMMLNode.childNodes.length; j++ ) {
-		var childNode = contentMMLNode.childNodes[j]
-			if(childNode.nodeType==document.ELEMENT_NODE) {
-				if(childNode.localName=='condition' || childNode.localName=='domainofapplication' ) {
-					qualifiers.push(childNode);
-				} else if(childNode.localName=='bvar') {
-					bvars.push(childNode)
-				} else {
-					args.push(childNode);
-				}
-			}
-	}
+	var children = CToP.classifyChildren(contentMMLNode);
+	var args = children.args.slice(1), bvars = children.bvars, qualifiers = children.qualifiers;
 
 	if(bvars.length || qualifiers.length) {
 		var mrow = CToP.createElement('mrow');
@@ -603,25 +613,9 @@ CToP.tokens['condition'] = function(parentNode,contentMMLNode,precedence) {
 }
 CToP.tokens['lambda'] = function(parentNode,contentMMLNode,precedence) {
 	var firstArg = CToP.createElement('lambda');
-	var args = [], bvars = [], qualifiers = [];
-	for(var j=0;j<contentMMLNode.childNodes.length; j++ ) {
-		if(contentMMLNode.childNodes[j].nodeType==document.ELEMENT_NODE) {
-			var childNode = contentMMLNode.childNodes[j], name = childNode.localName;
-			if(name == 'bvar'){
-				bvars.push(childNode);
-			} else if(name=='condition'||
-					name=='degree'||
-					name=='logbase'||
-					name=='lowlimit'||
-					name=='uplimit'||
-					(name=='interval' && !(args.length))||
-					name=='domainofapplication') {
-						qualifiers.push(childNode);
-					} else {
-						args.push(childNode);
-					}
-		}
-	}
+	var children = CToP.classifyChildren(contentMMLNode);
+	var args = children.args.slice(1), bvars = children.bvars, qualifiers = children.qualifiers;
+
 	if(bvars.length){
 		CToP.applyTokens["lambda"](parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 	} else {
@@ -756,7 +750,9 @@ CToP.applyTokens = {
 	"max": CToP.minmax('max'),
 	"min": CToP.minmax('min'),
 	"real": CToP.fn('\u211b'),
-	"imaginary": CToP.fn('\u2111')
+	"imaginary": CToP.fn('\u2111'),
+	"set": CToP.set('{','}'),
+	"list": CToP.set('(',')')
 }
 CToP.applyTokens['floor'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var mrow = CToP.createElement('mrow');
@@ -1036,14 +1032,6 @@ CToP.applyTokens["plus"] = function(parentNode,contentMMLNode,firstArg,args,bvar
 		CToP.appendToken(mrow,'mo',')');
 	}
 	parentNode.appendChild(mrow);
-}
-
-CToP.applyTokens['set'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
-	CToP.set(parentNode,args,'{','}');
-}
-
-CToP.applyTokens['list'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
-	CToP.set(parentNode,args,'(',')');
 }
 
 CToP.applyTokens['power'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
