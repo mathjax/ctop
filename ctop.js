@@ -392,9 +392,8 @@ CToP.tokens = {
 
 	"csymbol": function(parentNode,contentMMLNode,precedence) {
 		var cd = contentMMLNode.getAttribute('cd');
-		var name = contentMMLNode.textContent;
-		if(cd && CToP.contentDictionaries[cd] && CToP.contentDictionaries[cd][name]) {
-			CToP.appendToken(parentNode,'mi',CToP.contentDictionaries[cd][name]);
+		if(cd && CToP.contentDictionaries[cd]) {
+			CToP.contentDictionaries[cd](parentNode,contentMMLNode,precedence);
 		} else if(CToP.symbols[name]){
 			CToP.appendToken(parentNode,'mi',CToP.symbols[name]);
 		} else {
@@ -726,13 +725,21 @@ CToP.symbols = {
 	"gamma": '\u03B3'
 }
 CToP.contentDictionaries = {
-	"setname1": {
-		"C": '\u2102',
-		"N": '\u2115',
-		"P": '\u2119',
-		"Q": '\u211A',
-		"R": '\u211D',
-		"Z": '\u2124'
+	"setname1": function(parentNode,contentMMLNode,precedence) {
+		var sets = {
+			"C": '\u2102',
+			"N": '\u2115',
+			"P": '\u2119',
+			"Q": '\u211A',
+			"R": '\u211D',
+			"Z": '\u2124'
+		}
+		var name = contentMMLNode.textContent;
+		CToP.appendToken(parentNode,'mi',sets[name]);
+	},
+	"aritherror": function(parentNode,contentMMLNode,precedence) {
+		var name = contentMMLNode.textContent;
+		CToP.appendToken(parentNode,'mi',name+':');
 	}
 }
 
