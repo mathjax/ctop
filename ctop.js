@@ -473,30 +473,39 @@ CToP.tokens['cn'] = function(parentNode,contentMMLNode,precedence) {
 	var type = contentMMLNode.getAttribute("type");
 	var base = contentMMLNode.getAttribute("base");
 	if(type || base) {
-		var apply = CToP.createElement('apply');
-		var mrow = CToP.createElement('mrow');
-		var c;
 		if(base) {
 			type = 'based-integer';
-			c = CToP.createElement(type);
-			apply.appendChild(c);
-			CToP.appendToken(apply,'mn',base);
-		} else {
-			c = CToP.createElement(type);
-			apply.appendChild(c);
 		}
-		for(var j=0;j<contentMMLNode.childNodes.length; j++ ) {
-			if (contentMMLNode.childNodes[j].nodeType==document.TEXT_NODE) {
-				CToP.appendToken(mrow,'cn',contentMMLNode.childNodes[j].textContent);
-			}else if (contentMMLNode.childNodes[j].localName=='sep'){
+		switch(type) {
+			case 'integer':
+			case 'real':
+			case 'double':
+				CToP.token('mn')(parentNode,contentMMLNode);
+				break;
+			case 'hexdouble':
+				CToP.appendToken(parentNode,'mn','0x'+contentMMLNode.textContent);
+				break;
+			default:
+				var apply = CToP.createElement('apply');
+				var mrow = CToP.createElement('mrow');
+				var c = CToP.createElement(type);
+				apply.appendChild(c);
+				if(base) {
+					CToP.appendToken(apply,'mn',base);
+				}
+				for(var j=0;j<contentMMLNode.childNodes.length; j++ ) {
+					if (contentMMLNode.childNodes[j].nodeType==document.TEXT_NODE) {
+						CToP.appendToken(mrow,'cn',contentMMLNode.childNodes[j].textContent);
+					}else if (contentMMLNode.childNodes[j].localName=='sep'){
+						apply.appendChild(mrow);
+						mrow = CToP.createElement('mrow');
+					} else {
+						mrow.appendChild(contentMMLNode.childNodes[j].cloneNode(true));
+					}
+				}
 				apply.appendChild(mrow);
-				mrow = CToP.createElement('mrow');
-			} else {
-				mrow.appendChild(contentMMLNode.childNodes[j].cloneNode(true));
-			}
+				CToP.applyTransform(parentNode,apply,0);
 		}
-		apply.appendChild(mrow);
-		CToP.applyTransform(parentNode,apply,0);
 	} else {  
 		CToP.token('mn')(parentNode,contentMMLNode);
 	}
