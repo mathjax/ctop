@@ -215,7 +215,7 @@ var CToP = {
 	 *
 	 * (function factory
 	 */
-	iteration: function(name) {
+	iteration: function(name,limitSymbol) {
 		return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 			var mrow = CToP.createElement('mrow');
 			var mo = CToP.createElement('mo');
@@ -237,7 +237,7 @@ var CToP = {
 							}
 						}
 						if(bvars.length){
-							CToP.appendToken(mrow1,"mo","=");
+							CToP.appendToken(mrow1,"mo",limitSymbol);
 						}
 					}
 					var children = CToP.children(qualifiers[i]);
@@ -760,8 +760,6 @@ CToP.applyTokens = {
 	"leq": CToP.infix('\u2264',1),
 	"equivalent": CToP.infix('\u2261',1),
 	"approx": CToP.infix('\u2248',1),
-	"union": CToP.infix('\u222A',2),
-	"intersect": CToP.infix('\u2229',3),
 	"subset": CToP.infix('\u2286',2),
 	"prsubset": CToP.infix('\u2282',2),
 	"cartesianproduct": CToP.infix('\u00D7',2),
@@ -769,12 +767,12 @@ CToP.applyTokens = {
 	"vectorproduct": CToP.infix('\u00D7',2),
 	"scalarproduct": CToP.infix('.',2),
 	"outerproduct": CToP.infix('\u2297',2),
-	"sum": CToP.iteration('\u2211'),
-	"product": CToP.iteration('\u220F'),
+	"sum": CToP.iteration('\u2211','='),
+	"product": CToP.iteration('\u220F','='),
 	"forall": CToP.bind('\u2200',',',','),
 	"exists": CToP.bind('\u2203','\u007c',','),
 	"lambda": CToP.bind('\u03BB','.',','),
-	"limit": CToP.iteration('lim'),
+	"limit": CToP.iteration('lim','\u2192'),
 	"sdev": CToP.fn('\u03c3'),
 	"max": CToP.minmax('max'),
 	"min": CToP.minmax('min'),
@@ -783,6 +781,21 @@ CToP.applyTokens = {
 	"set": CToP.set('{','}'),
 	"list": CToP.set('(',')')
 }
+CToP.applyTokens['union'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	if(bvars.length) {
+		CToP.iteration('\u22C3','=')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+	} else {
+		CToP.infix('\u222A',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+	}
+}
+CToP.applyTokens['intersect'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	if(bvars.length) {
+		CToP.iteration('\u22C2','=')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+	} else {
+		CToP.infix('\u2229',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+	}
+}
+
 CToP.applyTokens['floor'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var mrow = CToP.createElement('mrow');
 	CToP.appendToken(mrow,'mo','\u230a');
@@ -805,21 +818,21 @@ CToP.applyTokens['abs'] = function(parentNode,contentMMLNode,firstArg,args,bvars
 }
 CToP.applyTokens['and'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	if(bvars.length || qualifiers.length) {
-		CToP.iteration('\u22c0')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,4);
+		CToP.iteration('\u22c0','=')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,4);
 	} else {
 		CToP.infix('\u2227',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 	}
 }
 CToP.applyTokens['or'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	if(bvars.length || qualifiers.length) {
-		CToP.iteration('\u22c1')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,4);
+		CToP.iteration('\u22c1','=')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,4);
 	} else {
 		CToP.infix('\u2228',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 	}
 }
 CToP.applyTokens['xor'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	if(bvars.length || qualifiers.length) {
-		CToP.iteration('xor')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,4);
+		CToP.iteration('xor','=')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,4);
 	} else {
 		CToP.infix('xor',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 	}
