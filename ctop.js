@@ -1086,17 +1086,17 @@ CToP.applyTokens["plus"] = function(parentNode,contentMMLNode,firstArg,args,bvar
 				CToP.appendToken(mrow,'mn', -n);
 			} else if(arg.localName=='apply' && children.length==2 && children[0].localName=='minus') {
 				CToP.appendToken(mrow,'mo','\u2212');
-				CToP.applyTransform(mrow,children[1],3);
+				CToP.applyTransform(mrow,children[1],2);
 			} else if(arg.localName=='apply' && children.length>2 && children[0].localName=='times' && children[1].localName=='cn' && ( n=Number(children[1].textContent) < 0)) {
 				CToP.appendToken(mrow,'mo','\u2212');
 				children[1].textContent=-n;// fix me: modifying document
-				CToP.applyTransform(mrow,arg,3);
+				CToP.applyTransform(mrow,arg,2);
 			} else{
 				CToP.appendToken(mrow,'mo','+');
-				CToP.applyTransform(mrow,arg,3);
+				CToP.applyTransform(mrow,arg,2);
 			}
 		} else {
-			CToP.applyTransform(mrow,arg,3);	
+			CToP.applyTransform(mrow,arg,2);	
 		}
 	}
 	if(needsBrackets) {
@@ -1114,7 +1114,7 @@ CToP.applyTokens['transpose'] = function(parentNode,contentMMLNode,firstArg,args
 
 CToP.applyTokens['power'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var msup = CToP.createElement('msup');
-	CToP.applyTransform(msup,args[0],precedence);
+	CToP.applyTransform(msup,args[0],3);
 	CToP.applyTransform(msup,args[1],precedence);
 	parentNode.appendChild(msup);
 }
@@ -1232,7 +1232,7 @@ CToP.applyTokens["quotient"] = function(parentNode,contentMMLNode,firstArg,args,
 
 CToP.applyTokens["factorial"] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence)  {
 	var mrow = CToP.createElement('mrow');
-	CToP.applyTransform(mrow,args[0],0);
+	CToP.applyTransform(mrow,args[0],4);
 	CToP.appendToken(mrow,'mo','!');
 	parentNode.appendChild(mrow);
 }
