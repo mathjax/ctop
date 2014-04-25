@@ -646,7 +646,7 @@ CToP.tokens['condition'] = function(parentNode,contentMMLNode,precedence) {
 CToP.tokens['lambda'] = function(parentNode,contentMMLNode,precedence) {
 	var firstArg = CToP.createElement('lambda');
 	var children = CToP.classifyChildren(contentMMLNode);
-	var args = children.args.slice(1), bvars = children.bvars, qualifiers = children.qualifiers;
+	var args = children.args, bvars = children.bvars, qualifiers = children.qualifiers;
 
 	if(bvars.length){
 		CToP.applyTokens["lambda"](parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
@@ -765,7 +765,7 @@ CToP.applyTokens = {
 	"left_compose": CToP.infix('\u2218',1),
 	"xor": CToP.infix('xor',3),
 	"neq": CToP.infix('\u2260',1),
-	"gt": CToP.infix('>',1),	// ???? gt and lt were the other way round in ctop.js!
+	"gt": CToP.infix('>',1),
 	"lt": CToP.infix('<',1),
 	"geq": CToP.infix('\u2265',1),
 	"leq": CToP.infix('\u2264',1),
