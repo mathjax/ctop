@@ -781,6 +781,13 @@ CToP.applyTokens = {
 	"set": CToP.set('{','}'),
 	"list": CToP.set('(',')')
 }
+CToP.applyTokens['exp'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	var msup = CToP.createElement('msup');
+	CToP.appendToken(msup,'mi','e');
+	CToP.applyTransform(msup,args[0],0);
+	parentNode.appendChild(msup);
+}
+
 CToP.applyTokens['union'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	if(bvars.length) {
 		CToP.iteration('\u22C3','=')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
