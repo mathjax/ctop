@@ -388,7 +388,7 @@ var CToP = {
 	}
 }
 
-/* mathvariant to use with corresponding <ci> type attribute
+/* mathvariant to use with corresponding <ci> type attribute */
 CToP.cistyles = {
 	"vector": 'bold-italic',
 	"matrix": 'bold-upright'
