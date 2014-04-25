@@ -858,6 +858,16 @@ CToP.applyTokens['card'] = CToP.applyTokens['size'] = function(parentNode,conten
 	CToP.appendToken(mrow,'mo','|');
 	parentNode.appendChild(mrow);
 }
+CToP.applyTokens['mean'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+	if(args.length==1) {
+		var mover = CToP.createElement('mover');
+		CToP.applyTransform(mover,args[0],0);
+		CToP.appendToken(mover,'mo','\u00af');
+		parentNode.appendChild(mover);
+	} else {
+		parentNode.appendChild(CToP.mfenced(args,'\u27e8','\u27e9'));
+	}
+}
 CToP.applyTokens['moment'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var degree,momentabout;
 
