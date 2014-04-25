@@ -1246,11 +1246,30 @@ CToP.applyTokens["partialdiff"] = function(parentNode,contentMMLNode,firstArg,ar
 					bvarNames.push(CToP.children(lambdaChildren[i])[0]);
 				}
 			}
-			for(var i=0;i<lambdaSequence.length;i++){
-				CToP.appendToken(mr,'mo','\u2202');
-				var n = Number(lambdaSequence[i].textContent)-1;
+			var lastN = null, degree = 0;
+			function addDiff(n,degree) {
+				CToP.appendToken(mrow,'mo','\u2202');
 				var bvar = bvarNames[n];
-				CToP.applyTransform(mrow,bvar,0);
+				if(degree>1) {
+					var msup = CToP.createElement('msup');
+					CToP.applyTransform(msup,bvar,0);
+					CToP.appendToken(msup,'mn',degree);
+					mrow.appendChild(msup);
+				} else {
+					CToP.applyTransform(mrow,bvar,0);
+				}
+			}
+			for(var i=0;i<lambdaSequence.length;i++){
+				var n = Number(lambdaSequence[i].textContent)-1;
+				if(lastN!==null && n!=lastN) {
+					addDiff(lastN,degree);
+					degree = 0;
+				}
+				lastN = n;
+				degree += 1;
+			}
+			if(lastN) {
+				addDiff(lastN,degree);
 			}
 			m.appendChild(mrow);
 			parentNode.appendChild(m);
