@@ -353,11 +353,7 @@ var CToP = {
 				CToP.appendToken(mrow,'mi',name);
 			}
 			CToP.appendToken(mrow,'mo','\u2061');
-			if(precedence<2 && args.length==1 && !(args[0].localName=='apply' || args[0].localName=='reln' || args[0].localName=='bind')) {
-				CToP.applyTransform(mrow,args[0],precedence);
-			} else {
-				mrow.appendChild(CToP.mfenced(args,'(',')'));
-			}
+			mrow.appendChild(CToP.mfenced(args,'(',')'));
 			parentNode.appendChild(mrow);
 		}
 	},
