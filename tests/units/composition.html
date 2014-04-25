@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>function composition - ctop errors</title>
+</head>
+<body>
+	<div class="unit">
+      <math xmlns="http://www.w3.org/1998/Math/MathML"> 
+        <apply> 
+          <compose/> 
+          <fn> 
+            <ci>f</ci> 
+          </fn> 
+          <fn> 
+            <ci>g</ci> 
+          </fn> 
+        </apply> 
+      </math> 
+	  <br/>
+      <math xmlns="http://www.w3.org/1998/Math/MathML"> 
+        <apply> 
+          <apply> 
+            <compose/> 
+            <fn> 
+              <ci>f</ci> 
+            </fn> 
+            <fn> 
+              <ci>g</ci> 
+            </fn> 
+          </apply> 
+          <ci>x</ci> 
+        </apply> 
+      </math> 
+	</div>
+
+	<script type="text/x-mathjax-config">
+	  MathJax.Hub.Config({
+		  skipStartupTypeset: true
+	  });
+	</script>
+	<script type="text/javascript"
+		src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+	</script>
+	<script src="../../ctop.js"></script>
+	<script src="../error-tests.js"></script>
+
+	<style type="text/css">
+		.MathJax_Display {
+			text-align: left !important;
+		}
+		.unit {
+			clear: both;
+		}
+		pre {
+			float: right;
+			width: 50%;
+			overflow-y: scroll;
+		}
+	</style>
+</body>
+</html>
