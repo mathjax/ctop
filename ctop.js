@@ -8,11 +8,27 @@ var CToP =
  */
 
 var CToP = {
-	collapsePlusMinus: false,
+	settings: {
+		// render `a+(-b)` as `a-b`?
+		collapsePlusMinus: true,
+
+		/* mathvariant to use with corresponding <ci> type attribute */
+		cistyles: {
+			"vector": 'bold-italic',
+			"matrix": 'bold-upright'
+		},
+
+		/* Symbol names to translate to characters
+		 */
+		symbols: {
+			"gamma": '\u03B3'
+		}
+
+	},
 
 	/* Transform the given <math> elements from Content MathML to Presentation MathML and replace the original elements
 	 */
-	transform: function(elements){
+	transformElements: function(elements){
 		for (var i = 0; i< elements.length;i++){
 			var mathNode = CToP.transformElement(elements[i]);
 			elements[i].parentNode.replaceChild(mathNode,elements[i]); 
@@ -37,7 +53,7 @@ var CToP = {
 
 	/* Get node's children
 	 */
-	children: function(node) {
+	getChildren: function(node) {
 		var children=[];
 		for(var j=0;j<node.childNodes.length; j++ ) {
 			if(node.childNodes[j].nodeType==document.ELEMENT_NODE) {
@@ -112,17 +128,9 @@ var CToP = {
 		}
 	},
 
-	/* Transform an identifier symbol
-	 */
-	identifier: function(textContent) {
-		return function(parentNode,contentMMLNode,precedence) {
-			CToP.appendToken(parentNode,'mi',textContent);
-		}
-	},
-
 	/* Make an mfenced environment
 	 */
-	mfenced: function(children,open,close) {
+	createmfenced: function(children,open,close) {
 		var mf = CToP.createElement('mfenced');
 		mf.setAttribute('open',open);
 		mf.setAttribute('close',close);
@@ -132,283 +140,288 @@ var CToP = {
 		return mf;
 	},
 
-	/* Transform a set or set-like notation
-	 */
-	set: function(open,close) {
-		var bindSet = CToP.bind('',',','|');
-		return function(parentNode,contentMMLNode) {
-			var children = CToP.classifyChildren(contentMMLNode);
+	transforms: {
 
-			var args = children.args, bvars = children.bvars, qualifiers = children.qualifiers;
-			if(bvars.length) {
-				var firstArg=children.args[0];
-				args = args.slice(1);
-				var mfenced = CToP.createElement('mfenced');
-				mfenced.setAttribute('open',open);
-				mfenced.setAttribute('close',close);
-				bindSet(mfenced,contentMMLNode,firstArg,args,bvars,qualifiers,0);
-				parentNode.appendChild(mfenced);
-			} else {
-				parentNode.appendChild(CToP.mfenced(args,open,close));
+		/* Transform an identifier symbol
+		*/
+		identifier: function(textContent) {
+			return function(parentNode,contentMMLNode,precedence) {
+				CToP.appendToken(parentNode,'mi',textContent);
 			}
-		}
-	},
+		},
 
-	/* Transform a content token to a presentation token
-	 *
-	 * (function factory)
-	 * @param {string} name - name of the corresponding presentation MML tag
-	 */
-	token: function(name) {
-		return function(parentNode,contentMMLNode) {
-			if(contentMMLNode.childNodes.length==1 && contentMMLNode.childNodes[0].nodeType==document.TEXT_NODE) {
-				CToP.appendToken(parentNode,name,contentMMLNode.textContent);
-			} else {
-				var mrow = CToP.createElement('mrow');
-				for(var j=0;j<contentMMLNode.childNodes.length; j++ ) {
-					if (contentMMLNode.childNodes[j].nodeType==document.TEXT_NODE) {
-						CToP.appendToken(parentNode,name,contentMMLNode.childNodes[j].textContent);
-					}else{
-						CToP.applyTransform(mrow,contentMMLNode.childNodes[j],0);
+		/* Transform a set or set-like notation
+		*/
+		set: function(open,close) {
+			var bindSet = CToP.transforms.bind('',',','|');
+			return function(parentNode,contentMMLNode) {
+				var children = CToP.classifyChildren(contentMMLNode);
+
+				var args = children.args, bvars = children.bvars, qualifiers = children.qualifiers;
+				if(bvars.length) {
+					var firstArg=children.args[0];
+					args = args.slice(1);
+					var mfenced = CToP.createElement('mfenced');
+					mfenced.setAttribute('open',open);
+					mfenced.setAttribute('close',close);
+					bindSet(mfenced,contentMMLNode,firstArg,args,bvars,qualifiers,0);
+					parentNode.appendChild(mfenced);
+				} else {
+					parentNode.appendChild(CToP.createmfenced(args,open,close));
+				}
+			}
+		},
+
+		/* Transform a content token to a presentation token
+		 *
+		 * (function factory)
+		 * @param {string} name - name of the corresponding presentation MML tag
+		 */
+		token: function(name) {
+			return function(parentNode,contentMMLNode) {
+				if(contentMMLNode.childNodes.length==1 && contentMMLNode.childNodes[0].nodeType==document.TEXT_NODE) {
+					CToP.appendToken(parentNode,name,contentMMLNode.textContent);
+				} else {
+					var mrow = CToP.createElement('mrow');
+					for(var j=0;j<contentMMLNode.childNodes.length; j++ ) {
+						if (contentMMLNode.childNodes[j].nodeType==document.TEXT_NODE) {
+							CToP.appendToken(parentNode,name,contentMMLNode.childNodes[j].textContent);
+						}else{
+							CToP.applyTransform(mrow,contentMMLNode.childNodes[j],0);
+						}
+					}
+					if(mrow.childNodes.length) {
+						parentNode.appendChild(mrow);
 					}
 				}
-				if(mrow.childNodes.length) {
-					parentNode.appendChild(mrow);
+			}
+		},
+
+		/* Transform a binary operation
+		 *
+		 * (function factory)
+		 */
+		binary: function(name,tokenPrecedence) {
+			return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+				var mrow = CToP.createElement('mrow');
+				var needsBrackets = tokenPrecedence<precedence || (tokenPrecedence==precedence && name=="-");
+				if(needsBrackets) {
+					CToP.appendToken(mrow,'mo','(');
 				}
+				if(args.length>1){
+					CToP.applyTransform(mrow,args[0],tokenPrecedence);
+				}
+				CToP.appendToken(mrow,'mo',name);
+				if(args.length>0){
+					var z = args[(args.length==1)?0:1];
+					CToP.applyTransform(mrow,z,tokenPrecedence);
+				}	
+				if(needsBrackets) {
+					CToP.appendToken(mrow,'mo',')');
+				}
+				parentNode.appendChild(mrow);
 			}
-		}
-	},
+		},
 
-	/* Transform a binary operation
-	 *
-	 * (function factory)
-	 */
-	binary: function(name,tokenPrecedence) {
-		return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
-			var mrow = CToP.createElement('mrow');
-			var needsBrackets = tokenPrecedence<precedence || (tokenPrecedence==precedence && name=="-");
-			if(needsBrackets) {
-				CToP.appendToken(mrow,'mo','(');
+		/* Transform an infix operator
+		 *
+		 * (function factory)
+		 */
+		infix: function(name,tokenPrecedence) {
+			return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+				var mrow = CToP.createElement('mrow');
+				var needsBrackets = precedence>tokenPrecedence;
+				if(needsBrackets) {
+					CToP.appendToken(mrow,'mo','(');
+				}
+				for(var j=0;j<args.length; j++ ) {
+					if(j>0) {
+						CToP.appendToken(mrow,'mo',name);
+					}
+					CToP.applyTransform(mrow,args[j],tokenPrecedence);
+				}
+				if(needsBrackets) {
+					CToP.appendToken(mrow,'mo',')');
+				}
+				parentNode.appendChild(mrow);
 			}
-			if(args.length>1){
-				CToP.applyTransform(mrow,args[0],tokenPrecedence);
-			}
-			CToP.appendToken(mrow,'mo',name);
-			if(args.length>0){
-				var z = args[(args.length==1)?0:1];
-				CToP.applyTransform(mrow,z,tokenPrecedence);
-			}	
-			if(needsBrackets) {
-				CToP.appendToken(mrow,'mo',')');
-			}
-			parentNode.appendChild(mrow);
-		}
-	},
+		},
 
-	/* Transform an infix operator
-	 *
-	 * (function factory)
-	 */
-	infix: function(name,tokenPrecedence) {
-		return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
-			var mrow = CToP.createElement('mrow');
-			var needsBrackets = precedence>tokenPrecedence;
-			if(needsBrackets) {
-				CToP.appendToken(mrow,'mo','(');
+		/* Transform an iterated operation, e.g. summation
+		 *
+		 * (function factory
+		 */
+		iteration: function(name,limitSymbol) {
+			return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+				var mrow = CToP.createElement('mrow');
+				var mo = CToP.createElement('mo');
+				mo.textContent = name;
+				var munderover = CToP.createElement('munderover');
+				munderover.appendChild(mo);
+				var mrow1 = CToP.createElement('mrow');
+				for(var i=0; i<qualifiers.length;i++){
+					if(qualifiers[i].localName=='lowlimit'||
+							qualifiers[i].localName=='condition'||
+							qualifiers[i].localName=='domainofapplication')
+					{
+						if(qualifiers[i].localName=='lowlimit'){
+							for(var j=0; j<bvars.length;j++){
+								var bvar = bvars[j];
+								var children = CToP.getChildren(bvar);
+								if(children.length){
+									CToP.applyTransform(mrow1,children[0],0);
+								}
+							}
+							if(bvars.length){
+								CToP.appendToken(mrow1,"mo",limitSymbol);
+							}
+						}
+						var children = CToP.getChildren(qualifiers[i]);
+						for(j=0;j<children.length;j++){
+							CToP.applyTransform(mrow1,children[j],0);
+						}
+					} else {
+						var children = CToP.getChildren(qualifiers[i]);
+						if (qualifiers[i].localName=='interval' && children.length==2) {
+							for(var j=0; j<bvars.length;j++){
+								var bvar = b[j];
+								var children = CToP.getChildren(bvar);
+								if(children.length){
+									CToP.applyTransform(mrow1,children[0],0);
+								}
+							}
+							if(bvars.length){
+								CToP.appendToken(mrow1,"mo","=");
+							}
+							CToP.applyTransform(mrow1,CToP.getChildren(qualifiers[i])[0],0);
+						}
+					}
+				}
+				munderover.appendChild(mrow1);
+				var mjrow = CToP.createElement('mrow');
+				for(var i=0; i<qualifiers.length;i++){
+					if(qualifiers[i].localName=='uplimit' ||qualifiers[i].localName=='interval' )
+					{
+						var children = CToP.getChildren(qualifiers[i]);
+						for(j=0;j<children.length;j++){
+							CToP.applyTransform(mjrow,children[j],0);
+						}
+					}
+				}
+				munderover.appendChild(mjrow);
+				mrow.appendChild(munderover);
+
+				for(var i=0; i<args.length;i++){
+					CToP.applyTransform(mrow,args[i],precedence);
+				}
+
+				parentNode.appendChild(mrow);
 			}
-			for(var j=0;j<args.length; j++ ) {
-				if(j>0) {
+		},
+
+		/* Transform something which binds a variable, e.g. forall or lambda
+		 *
+		 * (function factory)
+		 */
+		bind: function(name,argSeparator,conditionSeparator) {
+			return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+				var mrow = CToP.createElement('mrow');
+				if(name) {
 					CToP.appendToken(mrow,'mo',name);
 				}
-				CToP.applyTransform(mrow,args[j],tokenPrecedence);
-			}
-			if(needsBrackets) {
-				CToP.appendToken(mrow,'mo',')');
-			}
-			parentNode.appendChild(mrow);
-		}
-	},
+				for(var j=0; j<bvars.length;j++){
+					var bvar = bvars[j];
+					if(j>0) {
+						CToP.appendToken(mrow,'mo',',');
+					}
+					var children = CToP.getChildren(bvar);
+					if(children.length){
+						CToP.applyTransform(mrow,children[0],0);
+					}
+				}
 
-	/* Transform an iterated operation, e.g. summation
-	 *
-	 * (function factory
-	 */
-	iteration: function(name,limitSymbol) {
-		return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
-			var mrow = CToP.createElement('mrow');
-			var mo = CToP.createElement('mo');
-			mo.textContent = name;
-			var munderover = CToP.createElement('munderover');
-			munderover.appendChild(mo);
-			var mrow1 = CToP.createElement('mrow');
-			for(var i=0; i<qualifiers.length;i++){
-				if(qualifiers[i].localName=='lowlimit'||
-						qualifiers[i].localName=='condition'||
-						qualifiers[i].localName=='domainofapplication')
-				{
-					if(qualifiers[i].localName=='lowlimit'){
-						for(var j=0; j<bvars.length;j++){
-							var bvar = bvars[j];
-							var children = CToP.children(bvar);
-							if(children.length){
-								CToP.applyTransform(mrow1,children[0],0);
-							}
-						}
-						if(bvars.length){
-							CToP.appendToken(mrow1,"mo",limitSymbol);
+				var conditions_mrow = CToP.createElement('mrow');
+				var conditions = false, children;
+				for(var i=0; i<qualifiers.length;i++){
+					if(qualifiers[i].localName=='condition')	{
+						conditions = true;
+						children = CToP.getChildren(qualifiers[i]);
+						for(var j=0;j<children.length;j++){
+							CToP.applyTransform(conditions_mrow,children[j],0);
 						}
 					}
-					var children = CToP.children(qualifiers[i]);
-					for(j=0;j<children.length;j++){
-						CToP.applyTransform(mrow1,children[j],0);
+				}
+				if(conditions){
+					CToP.appendToken(mrow,'mo',conditionSeparator);
+				}
+				mrow.appendChild(conditions_mrow);
+				for(var i=0; i<qualifiers.length;i++){
+					if(qualifiers[i].localName!='condition')	{
+						CToP.appendToken(mrow,'mo','\u2208');
+						children = CToP.getChildren(qualifiers[i]);
+						for(var j=0;j<children.length;j++){
+							CToP.applyTransform(mrow,children[j],0);
+						}
 					}
+				}
+				if(args.length && (bvars.length||children.length)) {
+					CToP.appendToken(mrow,'mo',argSeparator);
+				}
+				for(var i=0; i<args.length;i++){
+					CToP.applyTransform(mrow,args[i],0);
+				}
+				parentNode.appendChild(mrow);
+			}
+		},
+
+		/** Transform a function application
+		 *
+		 * i.e. something which ends up looking like `f(x,y,z)`, where `f` is a string
+		 *
+		 * (function factory)
+		 */
+		fn: function(name) {
+			return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+				var mrow = CToP.createElement('mrow');
+				if(firstArg.childNodes.length){
+					CToP.applyTransform(mrow,firstArg,1);
 				} else {
-					var children = CToP.children(qualifiers[i]);
-					if (qualifiers[i].localName=='interval' && children.length==2) {
-						for(var j=0; j<bvars.length;j++){
-							var bvar = b[j];
-							var children = CToP.children(bvar);
-							if(children.length){
-								CToP.applyTransform(mrow1,children[0],0);
-							}
-						}
-						if(bvars.length){
-							CToP.appendToken(mrow1,"mo","=");
-						}
-						CToP.applyTransform(mrow1,CToP.children(qualifiers[i])[0],0);
-					}
+					CToP.appendToken(mrow,'mi',name);
 				}
+				CToP.appendToken(mrow,'mo','\u2061');
+				mrow.appendChild(CToP.createmfenced(args,'(',')'));
+				parentNode.appendChild(mrow);
 			}
-			munderover.appendChild(mrow1);
-			var mjrow = CToP.createElement('mrow');
-			for(var i=0; i<qualifiers.length;i++){
-				if(qualifiers[i].localName=='uplimit' ||qualifiers[i].localName=='interval' )
-				{
-					var children = CToP.children(qualifiers[i]);
-					for(j=0;j<children.length;j++){
-						CToP.applyTransform(mjrow,children[j],0);
-					}
-				}
-			}
-			munderover.appendChild(mjrow);
-			mrow.appendChild(munderover);
+		},
 
-			for(var i=0; i<args.length;i++){
-				CToP.applyTransform(mrow,args[i],precedence);
-			}
-
-			parentNode.appendChild(mrow);
-		}
-	},
-
-	/* Transform something which binds a variable, e.g. forall or lambda
-	 *
-	 * (function factory)
-	 */
-	bind: function(name,argSeparator,conditionSeparator) {
-		return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
-			var mrow = CToP.createElement('mrow');
-			if(name) {
-				CToP.appendToken(mrow,'mo',name);
-			}
-			for(var j=0; j<bvars.length;j++){
-				var bvar = bvars[j];
-				if(j>0) {
-					CToP.appendToken(mrow,'mo',',');
-				}
-				var children = CToP.children(bvar);
-				if(children.length){
-					CToP.applyTransform(mrow,children[0],0);
-				}
-			}
-
-			var conditions_mrow = CToP.createElement('mrow');
-			var conditions = false, children;
-			for(var i=0; i<qualifiers.length;i++){
-				if(qualifiers[i].localName=='condition')	{
-					conditions = true;
-					children = CToP.children(qualifiers[i]);
-					for(var j=0;j<children.length;j++){
-						CToP.applyTransform(conditions_mrow,children[j],0);
-					}
-				}
-			}
-			if(conditions){
-				CToP.appendToken(mrow,'mo',conditionSeparator);
-			}
-			mrow.appendChild(conditions_mrow);
-			for(var i=0; i<qualifiers.length;i++){
-				if(qualifiers[i].localName!='condition')	{
-					CToP.appendToken(mrow,'mo','\u2208');
-					children = CToP.children(qualifiers[i]);
-					for(var j=0;j<children.length;j++){
-						CToP.applyTransform(mrow,children[j],0);
-					}
-				}
-			}
-			if(args.length && (bvars.length||children.length)) {
-				CToP.appendToken(mrow,'mo',argSeparator);
-			}
-			for(var i=0; i<args.length;i++){
-				CToP.applyTransform(mrow,args[i],0);
-			}
-			parentNode.appendChild(mrow);
-		}
-	},
-
-	/** Transform a function application
-	 *
-	 * i.e. something which ends up looking like `f(x,y,z)`, where `f` is a string
-	 *
-	 * (function factory)
-	 */
-	fn: function(name) {
-		return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
-			var mrow = CToP.createElement('mrow');
-			if(firstArg.childNodes.length){
-				CToP.applyTransform(mrow,firstArg,1);
-			} else {
+		/** Transform a min/max operation
+		 *
+		 * (function factory)
+		 */
+		minmax: function(name) {
+			return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
+				var mrow = CToP.createElement('mrow');
 				CToP.appendToken(mrow,'mi',name);
-			}
-			CToP.appendToken(mrow,'mo','\u2061');
-			mrow.appendChild(CToP.mfenced(args,'(',')'));
-			parentNode.appendChild(mrow);
-		}
-	},
-
-	/** Transform a min/max operation
-	 *
-	 * (function factory)
-	 */
-	minmax: function(name) {
-		return function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
-			var mrow = CToP.createElement('mrow');
-			CToP.appendToken(mrow,'mi',name);
-			var mrow2 = CToP.createElement('mrow');
-			CToP.appendToken(mrow2,'mo','{');
-			for(var i=0;i<args.length;i++) {
-				if(i>0) {
-					CToP.appendToken(mrow2,'mo',',');
+				var mrow2 = CToP.createElement('mrow');
+				CToP.appendToken(mrow2,'mo','{');
+				for(var i=0;i<args.length;i++) {
+					if(i>0) {
+						CToP.appendToken(mrow2,'mo',',');
+					}
+					CToP.applyTransform(mrow2,args[i],0);
 				}
-				CToP.applyTransform(mrow2,args[i],0);
-			}
-			if(qualifiers.length) {
-				CToP.appendToken(mrow2,'mo','|');
-				for(var i=0;i<qualifiers.length;i++) {
-					CToP.applyTransform(mrow2,qualifiers[i],0);
+				if(qualifiers.length) {
+					CToP.appendToken(mrow2,'mo','|');
+					for(var i=0;i<qualifiers.length;i++) {
+						CToP.applyTransform(mrow2,qualifiers[i],0);
+					}
 				}
-			}
-			CToP.appendToken(mrow2,'mo','}');
+				CToP.appendToken(mrow2,'mo','}');
 			mrow.appendChild(mrow2);
 			parentNode.appendChild(mrow);
+			}
 		}
 	}
-}
-
-/* mathvariant to use with corresponding <ci> type attribute */
-CToP.cistyles = {
-	"vector": 'bold-italic',
-	"matrix": 'bold-upright'
 }
 
 /* Functions to transform variable/atom tokens
@@ -418,47 +431,47 @@ CToP.tokens = {
 		if(contentMMLNode.childNodes.length==1 && contentMMLNode.childNodes[0].nodeType==document.TEXT_NODE) {
 			var mi = CToP.appendToken(parentNode,'mi',contentMMLNode.textContent);
 			var type = contentMMLNode.getAttribute('type');
-			if(type in CToP.cistyles) {
-				mi.setAttribute('mathvariant',CToP.cistyles[type]);
+			if(type in CToP.settings.cistyles) {
+				mi.setAttribute('mathvariant',CToP.settings.cistyles[type]);
 			}
 		} else {
-			CToP.token('mi')(parentNode,contentMMLNode,precedence);
+			CToP.transforms.token('mi')(parentNode,contentMMLNode,precedence);
 		}
 	},
-	"cs": CToP.token('ms'),
+	"cs": CToP.transforms.token('ms'),
 
 	"csymbol": function(parentNode,contentMMLNode,precedence) {
 		var cd = contentMMLNode.getAttribute('cd');
 		if(cd && CToP.contentDictionaries[cd]) {
 			CToP.contentDictionaries[cd](parentNode,contentMMLNode,precedence);
-		} else if(CToP.symbols[name]){
-			CToP.appendToken(parentNode,'mi',CToP.symbols[name]);
+		} else if(CToP.settings.symbols[name]){
+			CToP.appendToken(parentNode,'mi',CToP.settings.symbols[name]);
 		} else {
 			CToP.tokens['ci'](parentNode,contentMMLNode);
 		}
 	},
 	"fn": function(parentNode,contentMMLNode,precedence) {
-		CToP.applyTransform(parentNode,CToP.children(contentMMLNode)[0],precedence);
+		CToP.applyTransform(parentNode,CToP.getChildren(contentMMLNode)[0],precedence);
 	},
 
-	"naturalnumbers": CToP.identifier('\u2115'),
-	"integers": CToP.identifier('\u2124'),
-	"reals": CToP.identifier('\u211D'),
-	"rationals": CToP.identifier('\u211A'),
-	"complexes": CToP.identifier('\u2102'),
-	"primes": CToP.identifier('\u2119'),
-	"exponentiale": CToP.identifier('e'),
-	"imaginaryi": CToP.identifier('i'),
-	"notanumber": CToP.identifier('NaN'),
-	"eulergamma": CToP.identifier('\u03B3'),
-	"gamma": CToP.identifier('\u0263'),
-	"pi": CToP.identifier('\u03C0'),
-	"infinity": CToP.identifier('\u221E'),
-	"emptyset": CToP.identifier('\u2205'),
-	"true": CToP.identifier('true'),
-	"false": CToP.identifier('false'),
-	'set': CToP.set('{','}'),
-	'list': CToP.set('(',')')
+	"naturalnumbers": CToP.transforms.identifier('\u2115'),
+	"integers": CToP.transforms.identifier('\u2124'),
+	"reals": CToP.transforms.identifier('\u211D'),
+	"rationals": CToP.transforms.identifier('\u211A'),
+	"complexes": CToP.transforms.identifier('\u2102'),
+	"primes": CToP.transforms.identifier('\u2119'),
+	"exponentiale": CToP.transforms.identifier('e'),
+	"imaginaryi": CToP.transforms.identifier('i'),
+	"notanumber": CToP.transforms.identifier('NaN'),
+	"eulergamma": CToP.transforms.identifier('\u03B3'),
+	"gamma": CToP.transforms.identifier('\u0263'),
+	"pi": CToP.transforms.identifier('\u03C0'),
+	"infinity": CToP.transforms.identifier('\u221E'),
+	"emptyset": CToP.transforms.identifier('\u2205'),
+	"true": CToP.transforms.identifier('true'),
+	"false": CToP.transforms.identifier('false'),
+	'set': CToP.transforms.set('{','}'),
+	'list': CToP.transforms.set('(',')')
 }
 
 CToP.tokens['interval'] = function(parentNode,contentMMLNode,precedence) {
@@ -484,7 +497,7 @@ CToP.tokens['interval'] = function(parentNode,contentMMLNode,precedence) {
 			close = ']';
 	}
 
-	parentNode.appendChild(CToP.mfenced(CToP.children(contentMMLNode),open,close));
+	parentNode.appendChild(CToP.createmfenced(CToP.getChildren(contentMMLNode),open,close));
 }
 CToP.tokens['apply'] = CToP.tokens['reln'] = CToP.tokens['bind'] = function(parentNode,contentMMLNode,precedence) {
 	var children = CToP.classifyChildren(contentMMLNode);
@@ -498,7 +511,7 @@ CToP.tokens['apply'] = CToP.tokens['reln'] = CToP.tokens['bind'] = function(pare
 		if(CToP.applyTokens[name]) {
 			CToP.applyTokens[name](parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 		} else {
-			CToP.fn(name)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+			CToP.transforms.fn(name)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 		}
 	} else {
 		parentNode.appendChild(CToP.createElement('mrow'));
@@ -517,7 +530,7 @@ CToP.tokens['cn'] = function(parentNode,contentMMLNode,precedence) {
 			case 'real':
 			case 'double':
 			case 'constant':
-				CToP.token('mn')(parentNode,contentMMLNode);
+				CToP.transforms.token('mn')(parentNode,contentMMLNode);
 				break;
 			case 'hexdouble':
 				CToP.appendToken(parentNode,'mn','0x'+contentMMLNode.textContent);
@@ -544,7 +557,7 @@ CToP.tokens['cn'] = function(parentNode,contentMMLNode,precedence) {
 				CToP.applyTransform(parentNode,apply,0);
 		}
 	} else {  
-		CToP.token('mn')(parentNode,contentMMLNode);
+		CToP.transforms.token('mn')(parentNode,contentMMLNode);
 	}
 }
 
@@ -553,7 +566,7 @@ CToP.tokens['vector'] = function(parentNode,contentMMLNode,precedence) {
 	CToP.appendToken(mrow,'mo','(');
 
 	var mtable = CToP.createElement('mtable');
-	var children = CToP.children(contentMMLNode);
+	var children = CToP.getChildren(contentMMLNode);
 	for(var i=0;i<children.length;i++) {
 		var mtr = CToP.createElement('mtr');
 		var mtd = CToP.createElement('mtd');
@@ -572,7 +585,7 @@ CToP.tokens['piecewise'] = function(parentNode,contentMMLNode,precedence) {
 	CToP.appendToken(mrow,'mo','{');
 	var mtable = CToP.createElement('mtable');
 	mrow.appendChild(mtable);
-	var children = CToP.children(contentMMLNode);
+	var children = CToP.getChildren(contentMMLNode);
 	for(var i=0;i<children.length;i++){
 		CToP.applyTransform(mtable,children[i],0);
 	}
@@ -581,7 +594,7 @@ CToP.tokens['piecewise'] = function(parentNode,contentMMLNode,precedence) {
 
 CToP.tokens['piece'] = function(parentNode,contentMMLNode,precedence) {
 	var mtr = CToP.createElement('mtr');
-	var children = CToP.children(contentMMLNode);
+	var children = CToP.getChildren(contentMMLNode);
 	for(i=0;i<children.length;i++){
 		var mtd = CToP.createElement('mtd');
 		mtr.appendChild(mtd);
@@ -597,7 +610,7 @@ CToP.tokens['piece'] = function(parentNode,contentMMLNode,precedence) {
 
 CToP.tokens['otherwise'] = function(parentNode,contentMMLNode,precedence) {
 	var mtr = CToP.createElement('mtr');
-	var children = CToP.children(contentMMLNode);
+	var children = CToP.getChildren(contentMMLNode);
 	if(children.length){
 		var mtd = CToP.createElement('mtd');
 		mtr.appendChild(mtd);
@@ -660,7 +673,7 @@ CToP.tokens['matrix'] = function(parentNode,contentMMLNode,precedence) {
 
 CToP.tokens['matrixrow'] = function(parentNode,contentMMLNode,precedence) {
 	var mtr = CToP.createElement('mtr');
-	var children = CToP.children(contentMMLNode);
+	var children = CToP.getChildren(contentMMLNode);
 	for(var i=0;i<children.length;i++){
 		var mtd = CToP.createElement('mtd');
 		CToP.applyTransform(mtd,children[i],0);
@@ -671,7 +684,7 @@ CToP.tokens['matrixrow'] = function(parentNode,contentMMLNode,precedence) {
 
 CToP.tokens['condition'] = function(parentNode,contentMMLNode,precedence) {
 	var mrow = CToP.createElement('mrow');
-	var children = CToP.children(contentMMLNode);
+	var children = CToP.getChildren(contentMMLNode);
 	for(var i=0;i<children.length;i++){
 		CToP.applyTransform(mrow,children[i],0);
 	}
@@ -694,7 +707,7 @@ CToP.tokens['lambda'] = function(parentNode,contentMMLNode,precedence) {
 			CToP.appendToken(msub,'mo','|');
 			var mrow2 = CToP.createElement('mrow');
 			for(var i=0;i<qualifiers.length;i++){
-				var children = CToP.children(qualifiers[i]);
+				var children = CToP.getChildren(qualifiers[i]);
 				for(var j=0;j<children.length;j++){
 					CToP.applyTransform(mrow2,children[j],0);
 				}
@@ -724,7 +737,7 @@ CToP.tokens["share"] = function(parentNode,contentMMLNode,precedence) {
 
 CToP.tokens["cerror"] = function(parentNode,contentMMLNode,precedence) {
 	var merror = CToP.createElement('merror');
-	var children = CToP.children(contentMMLNode);
+	var children = CToP.getChildren(contentMMLNode);
 	for(var i=0;i<children.length;i++){
 		CToP.applyTransform(merror,children[i],0);
 	}
@@ -733,7 +746,7 @@ CToP.tokens["cerror"] = function(parentNode,contentMMLNode,precedence) {
 
 CToP.tokens["semantics"] = function(parentNode,contentMMLNode,precedence)  {
 	var mrow = CToP.createElement('mrow');
-	var children = CToP.children(contentMMLNode);
+	var children = CToP.getChildren(contentMMLNode);
 	if(children.length){
 		var z = children[0];
 		for(var i=0;i<children.length;i++){
@@ -749,7 +762,7 @@ CToP.tokens["semantics"] = function(parentNode,contentMMLNode,precedence)  {
 
 CToP.tokens["annotation-xml"] = function(parentNode,contentMMLNode,precedence)  {
 	var mrow = CToP.createElement('mrow');
-	var children = CToP.children(contentMMLNode);
+	var children = CToP.getChildren(contentMMLNode);
 	for(var i=0;i<children.length;i++){
 		CToP.applyTransform(mrow,children[i],0);
 	}
@@ -757,11 +770,6 @@ CToP.tokens["annotation-xml"] = function(parentNode,contentMMLNode,precedence)  
 }
 
 
-/* Symbol names to translate to characters
- */
-CToP.symbols = {
-	"gamma": '\u03B3'
-}
 CToP.contentDictionaries = {
 	"setname1": function(parentNode,contentMMLNode,precedence) {
 		var sets = {
@@ -784,48 +792,48 @@ CToP.contentDictionaries = {
 /* Functions to transform function/operation application tokens
  */
 CToP.applyTokens = {
-	"rem": CToP.binary('mod',3),
-	"divide": CToP.binary('/',3),
-	"remainder": CToP.binary('mod',3),
-	"implies": CToP.binary('\u21D2',3),
-	"factorof": CToP.binary('|',3),
-	"in": CToP.binary('\u2208',3),
-	"notin": CToP.binary('\u2209',3),
-	"notsubset": CToP.binary('\u2288',2),
-	"notprsubset": CToP.binary('\u2284',2),
-	"setdiff": CToP.binary('\u2216',2),
-	"eq": CToP.infix('=',1),
-	"compose": CToP.infix('\u2218',0),
-	"left_compose": CToP.infix('\u2218',1),
-	"xor": CToP.infix('xor',3),
-	"neq": CToP.infix('\u2260',1),
-	"gt": CToP.infix('>',1),
-	"lt": CToP.infix('<',1),
-	"geq": CToP.infix('\u2265',1),
-	"leq": CToP.infix('\u2264',1),
-	"equivalent": CToP.infix('\u2261',1),
-	"approx": CToP.infix('\u2248',1),
-	"subset": CToP.infix('\u2286',2),
-	"prsubset": CToP.infix('\u2282',2),
-	"cartesianproduct": CToP.infix('\u00D7',2),
-	"cartesian_product": CToP.infix('\u00D7',2),
-	"vectorproduct": CToP.infix('\u00D7',2),
-	"scalarproduct": CToP.infix('.',2),
-	"outerproduct": CToP.infix('\u2297',2),
-	"sum": CToP.iteration('\u2211','='),
-	"product": CToP.iteration('\u220F','='),
-	"forall": CToP.bind('\u2200','.',','),
-	"exists": CToP.bind('\u2203','.',','),
-	"lambda": CToP.bind('\u03BB','.',','),
-	"limit": CToP.iteration('lim','\u2192'),
-	"sdev": CToP.fn('\u03c3'),
-	"determinant": CToP.fn('det'),
-	"max": CToP.minmax('max'),
-	"min": CToP.minmax('min'),
-	"real": CToP.fn('\u211b'),
-	"imaginary": CToP.fn('\u2111'),
-	"set": CToP.set('{','}'),
-	"list": CToP.set('(',')')
+	"rem": CToP.transforms.binary('mod',3),
+	"divide": CToP.transforms.binary('/',3),
+	"remainder": CToP.transforms.binary('mod',3),
+	"implies": CToP.transforms.binary('\u21D2',3),
+	"factorof": CToP.transforms.binary('|',3),
+	"in": CToP.transforms.binary('\u2208',3),
+	"notin": CToP.transforms.binary('\u2209',3),
+	"notsubset": CToP.transforms.binary('\u2288',2),
+	"notprsubset": CToP.transforms.binary('\u2284',2),
+	"setdiff": CToP.transforms.binary('\u2216',2),
+	"eq": CToP.transforms.infix('=',1),
+	"compose": CToP.transforms.infix('\u2218',0),
+	"left_compose": CToP.transforms.infix('\u2218',1),
+	"xor": CToP.transforms.infix('xor',3),
+	"neq": CToP.transforms.infix('\u2260',1),
+	"gt": CToP.transforms.infix('>',1),
+	"lt": CToP.transforms.infix('<',1),
+	"geq": CToP.transforms.infix('\u2265',1),
+	"leq": CToP.transforms.infix('\u2264',1),
+	"equivalent": CToP.transforms.infix('\u2261',1),
+	"approx": CToP.transforms.infix('\u2248',1),
+	"subset": CToP.transforms.infix('\u2286',2),
+	"prsubset": CToP.transforms.infix('\u2282',2),
+	"cartesianproduct": CToP.transforms.infix('\u00D7',2),
+	"cartesian_product": CToP.transforms.infix('\u00D7',2),
+	"vectorproduct": CToP.transforms.infix('\u00D7',2),
+	"scalarproduct": CToP.transforms.infix('.',2),
+	"outerproduct": CToP.transforms.infix('\u2297',2),
+	"sum": CToP.transforms.iteration('\u2211','='),
+	"product": CToP.transforms.iteration('\u220F','='),
+	"forall": CToP.transforms.bind('\u2200','.',','),
+	"exists": CToP.transforms.bind('\u2203','.',','),
+	"lambda": CToP.transforms.bind('\u03BB','.',','),
+	"limit": CToP.transforms.iteration('lim','\u2192'),
+	"sdev": CToP.transforms.fn('\u03c3'),
+	"determinant": CToP.transforms.fn('det'),
+	"max": CToP.transforms.minmax('max'),
+	"min": CToP.transforms.minmax('min'),
+	"real": CToP.transforms.fn('\u211b'),
+	"imaginary": CToP.transforms.fn('\u2111'),
+	"set": CToP.transforms.set('{','}'),
+	"list": CToP.transforms.set('(',')')
 }
 CToP.applyTokens['exp'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var msup = CToP.createElement('msup');
@@ -836,14 +844,14 @@ CToP.applyTokens['exp'] = function(parentNode,contentMMLNode,firstArg,args,bvars
 
 CToP.applyTokens['union'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	if(bvars.length) {
-		CToP.iteration('\u22C3','=')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+		CToP.transforms.iteration('\u22C3','=')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 	} else {
-		CToP.infix('\u222A',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+		CToP.transforms.infix('\u222A',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 	}
 }
 CToP.applyTokens['intersect'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	if(bvars.length) {
-		CToP.iteration('\u22C2','=')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+		CToP.transforms.iteration('\u22C2','=')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 	} else {
 		var mrow = CToP.createElement('mrow');
 		var needsBrackets = precedence>2;
@@ -855,7 +863,7 @@ CToP.applyTokens['intersect'] = function(parentNode,contentMMLNode,firstArg,args
 			if(j>0) {
 				CToP.appendToken(mrow,'mo','\u2229');
 				if(args[j].localName=='apply') {
-					var child = CToP.children(args[j])[0];
+					var child = CToP.getChildren(args[j])[0];
 					argBrackets = child.localName == 'union';
 				}
 			}
@@ -896,23 +904,23 @@ CToP.applyTokens['abs'] = function(parentNode,contentMMLNode,firstArg,args,bvars
 }
 CToP.applyTokens['and'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	if(bvars.length || qualifiers.length) {
-		CToP.iteration('\u22c0','=')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,4);
+		CToP.transforms.iteration('\u22c0','=')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,4);
 	} else {
-		CToP.infix('\u2227',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+		CToP.transforms.infix('\u2227',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 	}
 }
 CToP.applyTokens['or'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	if(bvars.length || qualifiers.length) {
-		CToP.iteration('\u22c1','=')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,4);
+		CToP.transforms.iteration('\u22c1','=')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,4);
 	} else {
-		CToP.infix('\u2228',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+		CToP.transforms.infix('\u2228',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 	}
 }
 CToP.applyTokens['xor'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	if(bvars.length || qualifiers.length) {
-		CToP.iteration('xor','=')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,4);
+		CToP.transforms.iteration('xor','=')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,4);
 	} else {
-		CToP.infix('xor',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+		CToP.transforms.infix('xor',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 	}
 }
 CToP.applyTokens['card'] = CToP.applyTokens['size'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
@@ -929,7 +937,7 @@ CToP.applyTokens['mean'] = function(parentNode,contentMMLNode,firstArg,args,bvar
 		CToP.appendToken(mover,'mo','\u00af');
 		parentNode.appendChild(mover);
 	} else {
-		parentNode.appendChild(CToP.mfenced(args,'\u27e8','\u27e9'));
+		parentNode.appendChild(CToP.createmfenced(args,'\u27e8','\u27e9'));
 	}
 }
 CToP.applyTokens['moment'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
@@ -947,14 +955,14 @@ CToP.applyTokens['moment'] = function(parentNode,contentMMLNode,firstArg,args,bv
 	CToP.appendToken(mrow,'mo','\u27e8');
 	var argrow = CToP.createElement('mrow');
 	if(args.length>1) {
-		argrow.appendChild(CToP.mfenced(args,'(',')'));
+		argrow.appendChild(CToP.createmfenced(args,'(',')'));
 	} else {
 		CToP.applyTransform(argrow,args[0],0);
 	}
 	if(degree) {
 		var msup = CToP.createElement('msup');
 		msup.appendChild(argrow);
-		var children = CToP.children(degree);
+		var children = CToP.getChildren(degree);
 		for(var j=0;j<children.length;j++){
 			CToP.applyTransform(msup,children[j],0);
 		}
@@ -967,7 +975,7 @@ CToP.applyTokens['moment'] = function(parentNode,contentMMLNode,firstArg,args,bv
 	if(momentabout) {
 		var msub = CToP.createElement('msub');
 		msub.appendChild(mrow);
-		var children = CToP.children(momentabout);
+		var children = CToP.getChildren(momentabout);
 		for(var j=0;j<children.length;j++){
 			CToP.applyTransform(msub,children[j],0);
 		}
@@ -984,14 +992,14 @@ CToP.applyTokens['variance'] = function(parentNode,contentMMLNode,firstArg,args,
 	CToP.appendToken(msup,'mn','2');
 	mrow.appendChild(msup);
 	CToP.appendToken(mrow,'mo','\u2061');
-	mrow.appendChild(CToP.mfenced(args,'(',')'));
+	mrow.appendChild(CToP.createmfenced(args,'(',')'));
 	parentNode.appendChild(mrow);
 }
 CToP.applyTokens['grad'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var mrow = CToP.createElement('mrow');
 	CToP.appendToken(mrow,'mo','\u2207');
 	CToP.appendToken(mrow,'mo','\u2061');
-	mrow.appendChild(CToP.mfenced(args,'(',')'));
+	mrow.appendChild(CToP.createmfenced(args,'(',')'));
 	parentNode.appendChild(mrow);
 };
 CToP.applyTokens['laplacian'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
@@ -1001,7 +1009,7 @@ CToP.applyTokens['laplacian'] = function(parentNode,contentMMLNode,firstArg,args
 	CToP.appendToken(msup,'mn','2');
 	mrow.appendChild(msup);
 	CToP.appendToken(mrow,'mo','\u2061');
-	mrow.appendChild(CToP.mfenced(args,'(',')'));
+	mrow.appendChild(CToP.createmfenced(args,'(',')'));
 	parentNode.appendChild(mrow);
 };
 CToP.applyTokens['curl'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
@@ -1010,7 +1018,7 @@ CToP.applyTokens['curl'] = function(parentNode,contentMMLNode,firstArg,args,bvar
 	CToP.appendToken(mrow,'mo','\u00d7');
 	var needsBrackets = args[0].localName == 'apply';
 	if(needsBrackets) {
-		mrow.appendChild(CToP.mfenced(args,'(', ')'));
+		mrow.appendChild(CToP.createmfenced(args,'(', ')'));
 	}
 	else {
 		CToP.applyTransform(mrow,args[0],precedence);
@@ -1023,7 +1031,7 @@ CToP.applyTokens['divergence'] = function(parentNode,contentMMLNode,firstArg,arg
 	CToP.appendToken(mrow,'mo','\u22c5');
 	var needsBrackets = args[0].localName == 'apply';
 	if(needsBrackets) {
-		mrow.appendChild(CToP.mfenced(args,'(', ')'));
+		mrow.appendChild(CToP.createmfenced(args,'(', ')'));
 	}
 	else {
 		CToP.applyTransform(mrow,args[0],precedence);
@@ -1059,7 +1067,7 @@ CToP.applyTokens['tendsto'] = function(parentNode,contentMMLNode,firstArg,args,b
 	}
 	var name = (type=='above')? '\u2198' :
 		(type=='below') ? '\u2197' : '\u2192' ;
-	CToP.binary(name,2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+	CToP.transforms.binary(name,2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 }
 CToP.applyTokens['minus'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var tokenPrecedence = args.length==1 ? 5 : 2;
@@ -1076,10 +1084,9 @@ CToP.applyTokens['minus'] = function(parentNode,contentMMLNode,firstArg,args,bva
 	} else {
 		CToP.applyTransform(mrow,args[0],tokenPrecedence);
 		CToP.appendToken(mrow,'mo','-');
-		console.log(args[1].localName, CToP.children(args[1])[0]);
 		var bracketArg;
 		if(args[1].localName=='apply') {
-			var argOp = CToP.children(args[1])[0];
+			var argOp = CToP.getChildren(args[1])[0];
 			bracketArg = argOp.localName=='plus' || argOp.localName=='minus';
 		}
 		if(bracketArg) {
@@ -1165,10 +1172,10 @@ CToP.applyTokens["plus"] = function(parentNode,contentMMLNode,firstArg,args,bvar
 	}
 	for(var j=0;j<args.length; j++ ) {
 		var arg = args[j];
-		var children = CToP.children(arg);
+		var children = CToP.getChildren(arg);
 		if(j>0) {
 			var n;
-			if(CToP.collapsePlusMinus) {
+			if(CToP.settings.collapsePlusMinus) {
 				if(arg.localName=='cn' && !(children.length) && (n=Number(arg.textContent)) <0) {
 					CToP.appendToken(mrow,'mo','\u2212');
 					CToP.appendToken(mrow,'mn', -n);
@@ -1233,7 +1240,7 @@ CToP.applyTokens["log"] = function(parentNode,contentMMLNode,firstArg,args,bvars
 	if(qualifiers.length && qualifiers[0].localName=='logbase'){
 		var msub = CToP.createElement('msub');
 		msub.appendChild(mi);
-		CToP.applyTransform(msub,CToP.children(qualifiers[0])[0],0);
+		CToP.applyTransform(msub,CToP.getChildren(qualifiers[0])[0],0);
 		mrow.appendChild(msub);
 	} else {
 		mrow.appendChild(mi);
@@ -1254,12 +1261,12 @@ CToP.applyTokens["int"] = function(parentNode,contentMMLNode,firstArg,args,bvars
 				qualifiers[i].localName=='condition'||
 				qualifiers[i].localName=='domainofapplication')
 		{
-			var children = CToP.children(qualifiers[i]);
+			var children = CToP.getChildren(qualifiers[i]);
 			for(var j=0;j<children.length;j++){
 				CToP.applyTransform(mrow1,children[j],0);
 			}
 		} else {
-			var children = CToP.children(qualifiers[i]);
+			var children = CToP.getChildren(qualifiers[i]);
 			if (qualifiers[i].localName=='interval' && children.length==2) {
 				CToP.applyTransform(mrow1,children[0],0);
 			}
@@ -1269,13 +1276,13 @@ CToP.applyTokens["int"] = function(parentNode,contentMMLNode,firstArg,args,bvars
 	var mrow2 = CToP.createElement('mrow');
 	for(var i=0; i<qualifiers.length;i++){
 		if(qualifiers[i].localName=='uplimit'){
-			var children = CToP.children(qualifiers[i]);
+			var children = CToP.getChildren(qualifiers[i]);
 			for(j=0;j<children.length;j++){
 				CToP.applyTransform(mrow2,children[j],0);
 			}
 			break;
 		} else if(qualifiers[i].localName=='interval' ){
-			var children = CToP.children(qualifiers[i]);
+			var children = CToP.getChildren(qualifiers[i]);
 			CToP.applyTransform(mrow2,children[children.length-1],0);
 			break;
 		}
@@ -1287,7 +1294,7 @@ CToP.applyTokens["int"] = function(parentNode,contentMMLNode,firstArg,args,bvars
 	}
 	for(var i=0; i<bvars.length;i++){
 		var bvar = bvars[i];
-		var children = CToP.children(bvar);
+		var children = CToP.getChildren(bvar);
 		if(children.length){
 			var mrow3 = CToP.createElement("mrow");
 			CToP.appendToken(mrow3,'mi','d');
@@ -1360,10 +1367,10 @@ CToP.applyTokens["diff"] = function(parentNode,contentMMLNode,firstArg,args,bvar
 		var d = CToP.createElement('mi');
 		d.textContent = 'd';
 
-		var children = CToP.children(bvars[0]);
+		var children = CToP.getChildren(bvars[0]);
 		for(var j=0;j<children.length;j++){
 			if(children[j].localName=='degree'){
-				var childNode = CToP.children(children[j])[0];
+				var childNode = CToP.getChildren(children[j])[0];
 				if(childNode.textContent!='1'){
 					degreeNode = childNode;
 					var msup = CToP.createElement('msup');
@@ -1429,7 +1436,7 @@ CToP.applyTokens["partialdiff"] = function(parentNode,contentMMLNode,firstArg,ar
 
 	if(bvars.length==0 && args.length==2 && args[0].localName=='list'){
 		if(args[1].localName=='lambda') {	// `d^(n+m)/(dx^n dy^m) f` form, through a lambda
-			var degree = CToP.children(args[0]).length;
+			var degree = CToP.getChildren(args[0]).length;
 			if(degree!=1) {
 				msup = CToP.createElement('msup');
 				CToP.appendToken(msup,'mo','\u2202');	// curly d
@@ -1439,16 +1446,16 @@ CToP.applyTokens["partialdiff"] = function(parentNode,contentMMLNode,firstArg,ar
 				CToP.appendToken(toprow,'mo','\u2202');
 			}
 
-			var children = CToP.children(args[1]);
+			var children = CToP.getChildren(args[1]);
 
 			differendNode = children[children.length - 1];	// thing being differentiated
 
 			var bvarNames = [];
-			var lambdaChildren = CToP.children(args[1]);	// names of bound variables
-			var lambdaSequence = CToP.children(args[0]);	// indices of bound variable names, in order
+			var lambdaChildren = CToP.getChildren(args[1]);	// names of bound variables
+			var lambdaSequence = CToP.getChildren(args[0]);	// indices of bound variable names, in order
 			for(var i=0;i<lambdaChildren.length;i++){
 				if(lambdaChildren[i].localName=='bvar'){
-					bvarNames.push(CToP.children(lambdaChildren[i])[0]);
+					bvarNames.push(CToP.getChildren(lambdaChildren[i])[0]);
 				}
 			}
 
@@ -1481,8 +1488,8 @@ CToP.applyTokens["partialdiff"] = function(parentNode,contentMMLNode,firstArg,ar
 			var mrow = CToP.createElement('mrow');
 			var msub = CToP.createElement('msub');
 			CToP.appendToken(msub,'mi','D');
-			var bvar = CToP.children(args[0]);
-			msub.appendChild(CToP.mfenced(bvar,'',''));
+			var bvar = CToP.getChildren(args[0]);
+			msub.appendChild(CToP.createmfenced(bvar,'',''));
 			mrow.appendChild(msub);
 			CToP.applyTransform(mrow,args[1],0);
 			parentNode.appendChild(mrow);
@@ -1498,14 +1505,14 @@ CToP.applyTokens["partialdiff"] = function(parentNode,contentMMLNode,firstArg,ar
 
 		var qualifier;
 
-		if(qualifiers.length && qualifiers[0].localName=='degree' && CToP.children(qualifiers[0]).length){
-			qualifier = CToP.children(qualifiers[0])[0];
+		if(qualifiers.length && qualifiers[0].localName=='degree' && CToP.getChildren(qualifiers[0]).length){
+			qualifier = CToP.getChildren(qualifiers[0])[0];
 			CToP.applyTransform(degreeRow,qualifier,0);
 		} else {
 			var degree = 0;
 			var hadFirst = false;
 			for(var i=0;i<bvars.length;i++){
-				var children = CToP.children(bvars[i]);
+				var children = CToP.getChildren(bvars[i]);
 				if(children.length==2){
 					for(j=0;j<2;j++){
 						if(children[j].localName=='degree') {
@@ -1516,7 +1523,7 @@ CToP.applyTokens["partialdiff"] = function(parentNode,contentMMLNode,firstArg,ar
 									CToP.appendToken(degreeRow,'mo','+');
 								}
 								hadFirst = true;
-								CToP.applyTransform(degreeRow,CToP.children(children[j])[0],0);
+								CToP.applyTransform(degreeRow,CToP.getChildren(children[j])[0],0);
 							}
 						}
 					}
@@ -1538,14 +1545,14 @@ CToP.applyTokens["partialdiff"] = function(parentNode,contentMMLNode,firstArg,ar
 
 		for(var i=0;i<bvars.length;i++){
 			CToP.appendToken(bottomrow,'mo','\u2202');
-			var children = CToP.children(bvars[i]);
+			var children = CToP.getChildren(bvars[i]);
 
 			if(children.length==2){
 				for(j=0;j<2;j++){
 					if(children[j].localName=='degree'){
 							var msup2 = CToP.createElement('msup');
 							CToP.applyTransform(msup2,children[1-j],0);
-							var bvarDegreeNode = CToP.children(children[j])[0];
+							var bvarDegreeNode = CToP.getChildren(children[j])[0];
 							CToP.applyTransform(msup2,bvarDegreeNode,0);
 							bottomrow.appendChild(msup2);
 					}

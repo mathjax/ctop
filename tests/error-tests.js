@@ -32,7 +32,7 @@ function formatXml(xml) {
 Array.prototype.map.call(document.querySelectorAll('.unit'),function(unit) {
 	try {
 		var mathNodes = unit.querySelectorAll('math');
-		CToP.transform(mathNodes);
+		CToP.transformElements(mathNodes);
 		var math = unit.querySelector('math').outerHTML;
 		var t = document.createElement('pre');
 		t.textContent = formatXml(math);

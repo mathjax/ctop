@@ -32,7 +32,7 @@ function doTransform() {
 	var content = document.querySelector('#content-mml').value;
 	var output = document.querySelector('#output');
 	output.innerHTML = content;
-	CToP.transform(output.querySelectorAll('math'));
+	CToP.transformElements(output.querySelectorAll('math'));
 	var presentation = formatXml(output.innerHTML);
 	document.querySelector('#presentation-mml').textContent = presentation;
 	MathJax.Hub.Queue(['Typeset',MathJax.Hub,output]);
