@@ -1286,68 +1286,103 @@ CToP.applyTokens["root"] = function(parentNode,contentMMLNode,firstArg,args,bvar
 }
 
 CToP.applyTokens["diff"] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence)  {
-	var m;
-	var mrow1 = CToP.createElement('mrow');
-	if(bvars.length){
-		m = CToP.createElement('mfrac');
-		var msup, bvar;
-		var mi = CToP.createElement('mi');
-		mi.textContent = 'd';
+	if(bvars.length){	// d/dx form
+		var outNode;
+		var mfrac = CToP.createElement('mfrac');
+		var toprow = CToP.createElement('mrow');
+		var bottomrow = CToP.createElement('mrow');
+		mfrac.appendChild(toprow);
+		mfrac.appendChild(bottomrow);
+
+		var bvar;
+		var degreeNode;
+
+		var d = CToP.createElement('mi');
+		d.textContent = 'd';
+
 		var children = CToP.children(bvars[0]);
 		for(var j=0;j<children.length;j++){
 			if(children[j].localName=='degree'){
 				var childNode = CToP.children(children[j])[0];
 				if(childNode.textContent!='1'){
-					msup = CToP.createElement('msup');
-					msup.appendChild(mi);
-					CToP.applyTransform(msup,childNode,0);
+					degreeNode = childNode;
+					var msup = CToP.createElement('msup');
+					msup.appendChild(d);
+					d = msup;
+					CToP.applyTransform(d,degreeNode,0);
 				}
 			} else {
-				bvar = CToP.children(bvars[0])[j];
+				bvar = children[j];
 			}
 		}
-		mrow1.appendChild(msup || mi);
+		toprow.appendChild(d);
+
 		if(args.length){
-			CToP.applyTransform(mrow1,args[0],0);
+			switch(args[0].localName) {
+				case 'apply':
+				case 'bind':
+				case 'reln':
+					var mrow = CToP.createElement('mrow');
+					mrow.appendChild(mfrac);
+					CToP.applyTransform(mrow,args[0],3);
+					outNode = mrow;
+					break;
+				default:
+					CToP.applyTransform(toprow,args[0],0);
+					outNode = mfrac;
+			}
 		}
-		m.appendChild(mrow1);
-		mrow1 = CToP.createElement('mrow');
-		CToP.appendToken(mrow1,'mi','d');
-		if(msup){
-			var msup2 = msup.cloneNode(true);
-			msup2.replaceChild(bvar,msup2.childNodes[0]); // fix me
-			mrow1.appendChild(msup2);
-			//CToP.applyTransform(bv,0);
+
+		CToP.appendToken(bottomrow,'mi','d');
+
+		if(degreeNode){
+			var msup2 = CToP.createElement('msup');
+			CToP.applyTransform(msup2,bvar,0);
+			CToP.applyTransform(msup2,degreeNode,0);
+			bottomrow.appendChild(msup2);
 		} else {
-			CToP.applyTransform(mrow1,bvar,0);
+			CToP.applyTransform(bottomrow,bvar,0);
 		}
-		m.appendChild(mrow1);
-	} else {
-		m = CToP.createElement('msup');
-		m.appendChild(mrow1);
-		CToP.applyTransform(mrow1,args[0],0); 
-		CToP.appendToken(m,'mo','\u2032');
+
+
+		parentNode.appendChild(outNode);
+	} else {	// f' form
+		var msup = CToP.createElement('msup');
+		var mrow = CToP.createElement('mrow');
+		msup.appendChild(mrow);
+		CToP.applyTransform(mrow,args[0],0); 
+		CToP.appendToken(m,'mo','\u2032'); // tick
+		parentNode.appendChild(msup);
 	}
-	parentNode.appendChild(m);
 }
 
 CToP.applyTokens["partialdiff"] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence)  {
 	var m, mi, msup, mrow, mo, z;
 
+	var mfrac = CToP.createElement('mfrac');
+	var toprow = CToP.createElement('mrow');
+	var bottomrow = CToP.createElement('mrow');
+	mfrac.appendChild(toprow);
+	mfrac.appendChild(bottomrow);
+
+	var degreeNode, differendNode;
+
 	if(bvars.length==0 && args.length==2 && args[0].localName=='list'){
-		if(args[1].localName=='lambda') {
-			m = CToP.createElement('mfrac');
-			msup = CToP.createElement('msup');
-			CToP.appendToken(msup,'mo','\u2202');
+		if(args[1].localName=='lambda') {	// `d^(n+m)/(dx^n dy^m) f` form, through a lambda
 			var degree = CToP.children(args[0]).length;
-			CToP.appendToken(msup,'mn',degree);
-			mrow = CToP.createElement('mrow');
-			mrow.appendChild(msup);
+			if(degree!=1) {
+				msup = CToP.createElement('msup');
+				CToP.appendToken(msup,'mo','\u2202');	// curly d
+				CToP.appendToken(msup,'mn',degree);
+				toprow.appendChild(msup);
+			} else {
+				CToP.appendToken(toprow,'mo','\u2202');
+			}
+
 			var children = CToP.children(args[1]);
-			z = children[children.length - 1];
-			CToP.applyTransform(mrow,z,0);
-			m.appendChild(mrow);
-			mrow = CToP.createElement('mrow');
+
+			differendNode = children[children.length - 1];	// thing being differentiated
+
 			var bvarNames = [];
 			var lambdaChildren = CToP.children(args[1]);	// names of bound variables
 			var lambdaSequence = CToP.children(args[0]);	// indices of bound variable names, in order
@@ -1356,17 +1391,18 @@ CToP.applyTokens["partialdiff"] = function(parentNode,contentMMLNode,firstArg,ar
 					bvarNames.push(CToP.children(lambdaChildren[i])[0]);
 				}
 			}
+
 			var lastN = null, degree = 0;
 			function addDiff(n,degree) {
-				CToP.appendToken(mrow,'mo','\u2202');
+				CToP.appendToken(bottomrow,'mo','\u2202');
 				var bvar = bvarNames[n];
 				if(degree>1) {
 					var msup = CToP.createElement('msup');
 					CToP.applyTransform(msup,bvar,0);
 					CToP.appendToken(msup,'mn',degree);
-					mrow.appendChild(msup);
+					bottomrow.appendChild(msup);
 				} else {
-					CToP.applyTransform(mrow,bvar,0);
+					CToP.applyTransform(bottomrow,bvar,0);
 				}
 			}
 			for(var i=0;i<lambdaSequence.length;i++){
@@ -1381,26 +1417,30 @@ CToP.applyTokens["partialdiff"] = function(parentNode,contentMMLNode,firstArg,ar
 			if(lastN) {
 				addDiff(lastN,degree);
 			}
-			m.appendChild(mrow);
-			parentNode.appendChild(m);
-		} else {
-			m = CToP.createElement('mrow');
+		} else {	// `D_i_j f` form
+			var mrow = CToP.createElement('mrow');
 			var msub = CToP.createElement('msub');
 			CToP.appendToken(msub,'mi','D');
 			var bvar = CToP.children(args[0]);
 			msub.appendChild(CToP.mfenced(bvar,'',''));
-			m.appendChild(msub);
-			CToP.applyTransform(m,args[1],0);
-			parentNode.appendChild(m);
+			mrow.appendChild(msub);
+			CToP.applyTransform(mrow,args[1],0);
+			parentNode.appendChild(mrow);
+			return;
 		}
-	} else {
-		m = CToP.createElement('mfrac');
-		msup = CToP.createElement('msup');
+	} else {	// `d^(n+m)/(dx^n dy^m) f` form, with bvars
+		var msup = CToP.createElement('msup');
+		toprow.appendChild(msup);
 		CToP.appendToken(msup,'mo','\u2202');
-		mrow = CToP.createElement('mrow');
+
+		var degreeRow = CToP.createElement('mrow');
+		msup.appendChild(degreeRow);
+
+		var qualifier;
+
 		if(qualifiers.length && qualifiers[0].localName=='degree' && CToP.children(qualifiers[0]).length){
-			var qualifier = CToP.children(qualifiers[0])[0];
-			CToP.applyTransform(mrow,qualifier,0);
+			qualifier = CToP.children(qualifiers[0])[0];
+			CToP.applyTransform(degreeRow,qualifier,0);
 		} else {
 			var degree = 0;
 			var hadFirst = false;
@@ -1413,12 +1453,11 @@ CToP.applyTokens["partialdiff"] = function(parentNode,contentMMLNode,firstArg,ar
 								degree += Number(children[j].textContent);
 							} else {
 								if(hadFirst){
-									CToP.appendToken(mrow,'mo','+');
+									CToP.appendToken(degreeRow,'mo','+');
 								}
 							}
 							hadFirst = true;
-							var degreeNode = CToP.children(children[j])[0];
-							CToP.applyTransform(mrow,degreeNode,0);
+							CToP.applyTransform(degreeRow,CToP.children(children[j])[0],0);
 						}
 					}
 				} else {
@@ -1427,39 +1466,54 @@ CToP.applyTokens["partialdiff"] = function(parentNode,contentMMLNode,firstArg,ar
 			}
 			if(degree>0){
 				if(hadFirst){
-					CToP.appendToken(mrow,'mo','+');
+					CToP.appendToken(degreeRow,'mo','+');
 				}   
-				CToP.appendToken(mrow,'mn',degree);
+				CToP.appendToken(degreeRow,'mn',degree);
 			}
 		}
-		msup.appendChild(mrow);
-		mrow = CToP.createElement('mrow');
-		mrow.appendChild(msup);
+
 		if(args.length){
-			CToP.applyTransform(mrow,args[0],0);
+			differendNode = args[0];
 		}
-		m.appendChild(mrow);
-		mrow = CToP.createElement('mrow');
+
 		for(var i=0;i<bvars.length;i++){
-			CToP.appendToken(mrow,'mo','\u2202');
+			CToP.appendToken(bottomrow,'mo','\u2202');
 			var children = CToP.children(bvars[i]);
+
 			if(children.length==2){
 				for(j=0;j<2;j++){
 					if(children[j].localName=='degree'){
-						msup = CToP.createElement('msup');
-						CToP.applyTransform(msup,children[1-j],0);
-						var degreeNode = CToP.children(children[j])[0];
-						CToP.applyTransform(msup,degreeNode,0);
-						mrow.appendChild(msup);
+							var msup2 = CToP.createElement('msup');
+							CToP.applyTransform(msup2,children[1-j],0);
+							var bvarDegreeNode = CToP.children(children[j])[0];
+							CToP.applyTransform(msup2,bvarDegreeNode,0);
+							bottomrow.appendChild(msup2);
 					}
 				}
 			} else if(children.length==1) {
-				CToP.applyTransform(mrow,children[0],0);
+					CToP.applyTransform(bottomrow,children[0],0);
 			}
 		}
-		m.appendChild(mrow);
-		parentNode.appendChild(m);
 	}
+	if(differendNode) {
+		switch(differendNode.localName) {
+			case 'apply':
+			case 'bind':
+			case 'reln':
+				var mrow = CToP.createElement('mrow');
+				mrow.appendChild(mfrac);
+				CToP.applyTransform(mrow,differendNode,3);
+				outNode = mrow;
+				break;
+			default:
+				CToP.applyTransform(toprow,differendNode,0);
+				outNode = mfrac;
+		}
+	} else {
+		outNode = mfrac;
+	}
+	parentNode.appendChild(outNode);
 }
+
 return CToP;
 })();
