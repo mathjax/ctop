@@ -714,10 +714,17 @@ CToP.tokens["domainofapplication"] = function(parentNode,contentMMLNode,preceden
 }
 
 CToP.tokens["share"] = function(parentNode,contentMMLNode,precedence) {
-	var mi = CToP.createElement('mi');
-	mi.setAttribute('href',contentMMLNode.getAttribute('href'));
-	mi.textContent = "share" + contentMMLNode.getAttribute('href');
-	parentNode.appendChild(mi);
+	var href = contentMMLNode.getAttribute('href');
+	var el;
+	if(href.charAt(0)=='#') {
+		el = document.getElementById(href.slice(1));
+		CToP.applyTransform(parentNode,el,precedence);
+	} else {
+		var mi = CToP.createElement('mi');
+		mi.setAttribute('href',contentMMLNode.getAttribute('href'));
+		mi.textContent = "Share " + contentMMLNode.getAttribute('href');
+		parentNode.appendChild(mi);
+	}
 }
 
 CToP.tokens["cerror"] = function(parentNode,contentMMLNode,precedence) {
