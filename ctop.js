@@ -1,3 +1,5 @@
+var CToP = 
+(function() {
 /* 
  * Content MathML to Presentation MathML conversion
  *
@@ -6,16 +8,23 @@
  */
 
 var CToP = {
-	/* Transform the given <math> elements from Content MathML to Presentation MathML
+	/* Transform the given <math> elements from Content MathML to Presentation MathML and replace the original elements
 	 */
 	transform: function(elements){
 		for (var i = 0; i< elements.length;i++){
-			var mathNode = elements[i].cloneNode(false);
-			for(var j=0;j<elements[i].childNodes.length; j++ ) {
-				CToP.applyTransform(mathNode,elements[i].childNodes[j],0);
-			}
+			var mathNode = CToP.transformElement(elements[i]);
 			elements[i].parentNode.replaceChild(mathNode,elements[i]); 
 		}
+	},
+	
+	/* Transform a Content MathML element into Presentation MathML, and return the new element
+	 */
+	transformElement: function(element) {
+		var mathNode = element.cloneNode(false);
+		for(var j=0;j<element.childNodes.length; j++ ) {
+			CToP.applyTransform(mathNode,element.childNodes[j],0);
+		}
+		return mathNode;
 	},
 
 	/* Create an element with given name, belonging to the MathML namespace
@@ -78,6 +87,12 @@ var CToP = {
 	/* Transform a Content MathML node to Presentation MathML node(s), and attach it to the parent
 	 */
 	applyTransform: function(parentNode,contentMMLNode,precedence) {
+		if(!contentMMLNode) {
+			var merror = CToP.createElement('merror');
+			CToP.appendToken(merror,'mtext','Missing child node');
+			parentNode.appendChild(merror);
+			return;
+		}
 		if (contentMMLNode.nodeType==document.ELEMENT_NODE) {
 			if(CToP.tokens[contentMMLNode.localName]) {
 				CToP.tokens[contentMMLNode.localName](parentNode,contentMMLNode,precedence);
@@ -1446,4 +1461,5 @@ CToP.applyTokens["partialdiff"] = function(parentNode,contentMMLNode,firstArg,ar
 		parentNode.appendChild(m);
 	}
 }
-
+return CToP;
+})();
