@@ -843,7 +843,32 @@ CToP.applyTokens['intersect'] = function(parentNode,contentMMLNode,firstArg,args
 	if(bvars.length) {
 		CToP.iteration('\u22C2','=')(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 	} else {
-		CToP.infix('\u2229',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+		var mrow = CToP.createElement('mrow');
+		var needsBrackets = precedence>2;
+		if(needsBrackets) {
+			CToP.appendToken(mrow,'mo','(');
+		}
+		for(var j=0;j<args.length; j++ ) {
+			var argBrackets = false;
+			if(j>0) {
+				CToP.appendToken(mrow,'mo','\u2229');
+				if(args[j].localName=='apply') {
+					var child = CToP.children(args[j])[0];
+					argBrackets = child.localName == 'union';
+				}
+			}
+			if(argBrackets) {
+				CToP.appendToken(mrow,'mo','(');
+			}
+			CToP.applyTransform(mrow,args[j],2);
+			if(argBrackets) {
+				CToP.appendToken(mrow,'mo',')');
+			}
+		}
+		if(needsBrackets) {
+			CToP.appendToken(mrow,'mo',')');
+		}
+		parentNode.appendChild(mrow);
 	}
 }
 
