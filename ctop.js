@@ -1035,11 +1035,39 @@ CToP.applyTokens['tendsto'] = function(parentNode,contentMMLNode,firstArg,args,b
 	CToP.binary(name,2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
 }
 CToP.applyTokens['minus'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
-	if(args.length==1) {
-		CToP.binary('-',5)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
-	} else {
-		CToP.binary('-',2)(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence);
+	var tokenPrecedence = args.length==1 ? 5 : 2;
+
+	var mrow = CToP.createElement('mrow');
+	var needsBrackets = tokenPrecedence<precedence;
+	if(needsBrackets) {
+		CToP.appendToken(mrow,'mo','(');
 	}
+
+	if(args.length==1) {
+		CToP.appendToken(mrow,'mo','-');
+		CToP.applyTransform(mrow,args[0],tokenPrecedence);
+	} else {
+		CToP.applyTransform(mrow,args[0],tokenPrecedence);
+		CToP.appendToken(mrow,'mo','-');
+		console.log(args[1].localName, CToP.children(args[1])[0]);
+		var bracketArg;
+		if(args[1].localName=='apply') {
+			var argOp = CToP.children(args[1])[0];
+			bracketArg = argOp.localName=='plus' || argOp.localName=='minus';
+		}
+		if(bracketArg) {
+			CToP.appendToken(mrow,'mo','(');
+		}
+		CToP.applyTransform(mrow,args[1],tokenPrecedence);
+		if(bracketArg) {
+			CToP.appendToken(mrow,'mo',')');
+		}
+	}
+
+	if(needsBrackets) {
+		CToP.appendToken(mrow,'mo',')');
+	}
+	parentNode.appendChild(mrow);
 }
 CToP.applyTokens['complex-cartesian'] = function(parentNode,contentMMLNode,firstArg,args,bvars,qualifiers,precedence) {
 	var mrow = CToP.createElement('mrow');
