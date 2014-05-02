@@ -1508,9 +1508,9 @@ CToP.applyTokens["partialdiff"] = function(parentNode,contentMMLNode,firstArg,ar
 								if(hadFirst){
 									CToP.appendToken(degreeRow,'mo','+');
 								}
+								hadFirst = true;
+								CToP.applyTransform(degreeRow,CToP.children(children[j])[0],0);
 							}
-							hadFirst = true;
-							CToP.applyTransform(degreeRow,CToP.children(children[j])[0],0);
 						}
 					}
 				} else {
