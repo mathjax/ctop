@@ -8,6 +8,8 @@ var CToP =
  */
 
 var CToP = {
+	collapsePlusMinus: false,
+
 	/* Transform the given <math> elements from Content MathML to Presentation MathML and replace the original elements
 	 */
 	transform: function(elements){
@@ -714,17 +716,10 @@ CToP.tokens["domainofapplication"] = function(parentNode,contentMMLNode,preceden
 }
 
 CToP.tokens["share"] = function(parentNode,contentMMLNode,precedence) {
-	var href = contentMMLNode.getAttribute('href');
-	var el;
-	if(href.charAt(0)=='#') {
-		el = document.getElementById(href.slice(1));
-		CToP.applyTransform(parentNode,el,precedence);
-	} else {
-		var mi = CToP.createElement('mi');
-		mi.setAttribute('href',contentMMLNode.getAttribute('href'));
-		mi.textContent = "Share " + contentMMLNode.getAttribute('href');
-		parentNode.appendChild(mi);
-	}
+	var mi = CToP.createElement('mi');
+	mi.setAttribute('href',contentMMLNode.getAttribute('href'));
+	mi.textContent = "Share " + contentMMLNode.getAttribute('href');
+	parentNode.appendChild(mi);
 }
 
 CToP.tokens["cerror"] = function(parentNode,contentMMLNode,precedence) {
@@ -1173,17 +1168,22 @@ CToP.applyTokens["plus"] = function(parentNode,contentMMLNode,firstArg,args,bvar
 		var children = CToP.children(arg);
 		if(j>0) {
 			var n;
-			if(arg.localName=='cn' && !(children.length) && (n=Number(arg.textContent)) <0) {
-				CToP.appendToken(mrow,'mo','\u2212');
-				CToP.appendToken(mrow,'mn', -n);
-			} else if(arg.localName=='apply' && children.length==2 && children[0].localName=='minus') {
-				CToP.appendToken(mrow,'mo','\u2212');
-				CToP.applyTransform(mrow,children[1],2);
-			} else if(arg.localName=='apply' && children.length>2 && children[0].localName=='times' && children[1].localName=='cn' && ( n=Number(children[1].textContent) < 0)) {
-				CToP.appendToken(mrow,'mo','\u2212');
-				children[1].textContent=-n;// fix me: modifying document
-				CToP.applyTransform(mrow,arg,2);
-			} else{
+			if(CToP.collapsePlusMinus) {
+				if(arg.localName=='cn' && !(children.length) && (n=Number(arg.textContent)) <0) {
+					CToP.appendToken(mrow,'mo','\u2212');
+					CToP.appendToken(mrow,'mn', -n);
+				} else if(arg.localName=='apply' && children.length==2 && children[0].localName=='minus') {
+					CToP.appendToken(mrow,'mo','\u2212');
+					CToP.applyTransform(mrow,children[1],2);
+				} else if(arg.localName=='apply' && children.length>2 && children[0].localName=='times' && children[1].localName=='cn' && ( n=Number(children[1].textContent) < 0)) {
+					CToP.appendToken(mrow,'mo','\u2212');
+					children[1].textContent=-n;// fix me: modifying document
+					CToP.applyTransform(mrow,arg,2);
+				} else{
+					CToP.appendToken(mrow,'mo','+');
+					CToP.applyTransform(mrow,arg,2);
+				}
+			} else {
 				CToP.appendToken(mrow,'mo','+');
 				CToP.applyTransform(mrow,arg,2);
 			}
